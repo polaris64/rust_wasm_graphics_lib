@@ -1,6 +1,7 @@
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
+/// A 32-bit ARGB colour
 pub struct ARGBColour {
     pub a: u8,
     pub r: u8,
@@ -10,6 +11,8 @@ pub struct ARGBColour {
 
 #[wasm_bindgen]
 impl ARGBColour {
+
+    /// Creates a new ARGBColour from ARGB u8 components
     pub fn new(a: u8, r: u8, g: u8, b: u8) -> Self {
         Self { a, r, g, b }
     }
