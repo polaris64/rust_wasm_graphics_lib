@@ -28,13 +28,17 @@ console_error_panic_hook = { version = "0.1.1", optional = true }
 wee_alloc = { version = "0.4.2", optional = true }
 
 [dev-dependencies]
-criterion = "0.2"
 wasm-bindgen-test = "0.2"
+
+# Add criterion for benchmark tests only for non-wasm32 targets
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+criterion = "0.2"
 
 [profile.release]
 lto = true
 # Tell `rustc` to optimize for small code size.
 opt-level = "s"
+
 
 [[bench]]
 name = "benchmarks"
