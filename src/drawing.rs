@@ -48,12 +48,21 @@ pub fn fill_rect(c: &mut Canvas, col: &ARGBColour, mut x1: usize, mut y1: usize,
     if y2 >= c.height() { y2 = c.height() - 1 }
 
     let col: u32 = col.into();
-    for y in y1..y2 + 1 {
-        for x in x1..x2 + 1 {
-            let idx = c.buffer_index(x, y);
-            c.buffer()[idx] = col;
-        }
-    }
+    let w = c.width();
+
+    // Split buffer into chunks of "width", skip until the top of the rectangle and iterate over
+    // all rows (y2 - y1) to get each scanline.  Then, set pixels in the scanline in the interval
+    // [x1,x2].
+    c.buffer()
+        .as_mut_slice()
+        .chunks_mut(w)
+        .skip(y1)
+        .take(y2 - y1 + 1)
+        .for_each(|scanline| {
+            for x in x1..x2 + 1 {
+                scanline[x] = col;
+            }
+        });
 }
 
 #[wasm_bindgen]
