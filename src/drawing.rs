@@ -33,14 +33,10 @@ use crate::types::ARGBColour;
 /// ```
 pub fn fill_rect(c: &mut Canvas, col: &ARGBColour, mut x1: usize, mut y1: usize, mut x2: usize, mut y2: usize) {
     if x1 > x2 {
-        let temp = x1;
-        x1 = x2;
-        x2 = temp;
+        std::mem::swap(&mut x1, &mut x2);
     }
     if y1 > y2 {
-        let temp = y1;
-        y1 = y2;
-        y2 = temp;
+        std::mem::swap(&mut y1, &mut y2);
     }
     if x1 >= c.width() { x1 = c.width() - 1 }
     if y1 >= c.height() { y1 = c.height() - 1 }
@@ -58,11 +54,12 @@ pub fn fill_rect(c: &mut Canvas, col: &ARGBColour, mut x1: usize, mut y1: usize,
         .chunks_mut(w)
         .skip(y1)
         .take(y2 - y1 + 1)
-        .for_each(|scanline| {
-            for x in x1..x2 + 1 {
-                scanline[x] = col;
-            }
-        });
+        .for_each(|scanline|
+            scanline.iter_mut()
+                .skip(x1)
+                .take(x2 - x1 + 1)
+                .for_each(|x| *x = col)
+        );
 }
 
 #[wasm_bindgen]
@@ -93,9 +90,7 @@ pub fn h_line(c: &mut Canvas, col: &ARGBColour, mut x1: usize, y: usize, mut x2:
         return;
     }
     if x1 > x2 {
-        let temp = x1;
-        x1 = x2;
-        x2 = temp;
+        std::mem::swap(&mut x1, &mut x2);
     }
     if x1 > c.width() {
         return;
@@ -103,7 +98,7 @@ pub fn h_line(c: &mut Canvas, col: &ARGBColour, mut x1: usize, y: usize, mut x2:
     if x2 >= c.width() { x2 = c.width() - 1 }
     let col: u32 = col.into();
     let mut idx = c.buffer_index(x1, y);
-    for _ in x1..x2 + 1 {
+    for _ in x1..=x2 {
         c.buffer()[idx] = col;
         idx += 1;
     }
@@ -137,9 +132,7 @@ pub fn v_line(c: &mut Canvas, col: &ARGBColour, x: usize, mut y1: usize, mut y2:
         return;
     }
     if y1 > y2 {
-        let temp = y1;
-        y1 = y2;
-        y2 = temp;
+        std::mem::swap(&mut y1, &mut y2);
     }
     if y1 > c.height() {
         return;
@@ -147,7 +140,7 @@ pub fn v_line(c: &mut Canvas, col: &ARGBColour, x: usize, mut y1: usize, mut y2:
     if y2 >= c.height() { y2 = c.height() - 1 }
     let col: u32 = col.into();
     let mut idx = c.buffer_index(x, y1);
-    for _ in y1..y2 + 1 {
+    for _ in y1..=y2 {
         c.buffer()[idx] = col;
         idx += c.width()
     }
@@ -163,7 +156,7 @@ fn plot_line_low(c: &mut Canvas, col: u32, x1: usize, y1: usize, x2: usize, y2: 
     }
     let mut d: isize = 2isize * (dy as isize) - (dx as isize);
     let mut y: isize = y1 as isize;
-    for x in x1..x2 {
+    for x in x1..=x2 {
         if y < 0 { break; }
         if y >= c.height() as isize { break; }
         let idx = c.buffer_index(x, y as usize);
@@ -186,7 +179,7 @@ fn plot_line_high(c: &mut Canvas, col: u32, x1: usize, y1: usize, x2: usize, y2:
     }
     let mut d: isize = 2isize * (dx as isize) - (dy as isize);
     let mut x: isize = x1 as isize;
-    for y in y1..y2 {
+    for y in y1..=y2 {
         if x < 0 { break; }
         if x >= c.width() as isize { break; }
         let idx = c.buffer_index(x as usize, y);
@@ -240,12 +233,10 @@ pub fn line_bresenham(c: &mut Canvas, col: &ARGBColour, mut x1: usize, mut y1: u
         } else {
             plot_line_low(c, col, x1, y1, x2, y2);
         }
+    } else if y1 > y2 {
+        plot_line_high(c, col, x2, y2, x1, y1);
     } else {
-        if y1 > y2 {
-            plot_line_high(c, col, x2, y2, x1, y1);
-        } else {
-            plot_line_high(c, col, x1, y1, x2, y2);
-        }
+        plot_line_high(c, col, x1, y1, x2, y2);
     }
 }
 

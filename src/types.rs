@@ -20,6 +20,6 @@ impl ARGBColour {
 
 impl From<&ARGBColour> for u32 {
     fn from(x: &ARGBColour) -> u32 {
-        (x.a as u32) << 24 | (x.r as u32) << 16 | (x.g as u32) << 8 | (x.b as u32)
+        u32::from(x.a) << 24 | u32::from(x.r) << 16 | u32::from(x.g) << 8 | u32::from(x.b)
     }
 }
