@@ -120,7 +120,7 @@ pub fn h_line(c: &mut Canvas, col: &ARGBColour, mut x1: usize, y: usize, mut x2:
 ///   - `col`: colour to use for line
 ///   - `x`: x co-ordinate
 ///   - `y1`: y co-ordinate of line start
-///   - `x2`: y co-ordinate of line end
+///   - `y2`: y co-ordinate of line end
 ///
 /// # Example:
 ///
@@ -150,5 +150,141 @@ pub fn v_line(c: &mut Canvas, col: &ARGBColour, x: usize, mut y1: usize, mut y2:
     for _ in y1..y2 + 1 {
         c.buffer()[idx] = col;
         idx += c.width()
+    }
+}
+
+fn plot_line_low(c: &mut Canvas, col: u32, x1: usize, y1: usize, x2: usize, y2: usize) {
+    let dx: isize = (x2 - x1) as isize;
+    let mut dy: isize = (y2 - y1) as isize;
+    let mut yi: isize = 1isize;
+    if dy < 0 {
+        yi = -1isize;
+        dy = -dy;
+    }
+    let mut d: isize = 2isize * (dy as isize) - (dx as isize);
+    let mut y: isize = y1 as isize;
+    for x in x1..x2 {
+        if y < 0 { break; }
+        if y >= c.height() as isize { break; }
+        let idx = c.buffer_index(x, y as usize);
+        c.buffer()[idx] = col;
+        if d > 0 {
+            y += yi;
+            d -= 2 * dx;
+        }
+        d += 2 * dy;
+    }
+}
+
+fn plot_line_high(c: &mut Canvas, col: u32, x1: usize, y1: usize, x2: usize, y2: usize) {
+    let mut dx: isize = (x2 - x1) as isize;
+    let dy: isize = (y2 - y1) as isize;
+    let mut xi: isize = 1isize;
+    if dx < 0 {
+        xi = -1isize;
+        dx = -dx;
+    }
+    let mut d: isize = 2isize * (dx as isize) - (dy as isize);
+    let mut x: isize = x1 as isize;
+    for y in y1..y2 {
+        if x < 0 { break; }
+        if x >= c.width() as isize { break; }
+        let idx = c.buffer_index(x as usize, y);
+        c.buffer()[idx] = col;
+        if d > 0 {
+            x += xi;
+            d -= 2 * dy;
+        }
+        d += 2 * dx;
+    }
+}
+
+/// Draws a line of a given colour to a [`Canvas`] using Bresenham's line drawing algorithm.
+///
+/// [`Canvas`]: ../canvas/struct.Canvas.html
+///
+/// # Arguments:
+///
+///   - `c`: target [`Canvas`]
+///   - `col`: colour to use for line
+///   - `x1`: x co-ordinate of line start
+///   - `y1`: y co-ordinate of line start
+///   - `x2`: x co-ordinate of line end
+///   - `y2`: y co-ordinate of line end
+///
+/// # Example:
+///
+/// ```
+/// use rust_wasm_graphics_lib::canvas::Canvas;
+/// use rust_wasm_graphics_lib::drawing::line_bresenham;
+/// use rust_wasm_graphics_lib::types::ARGBColour;
+///
+/// let mut c = Canvas::new(128, 128);
+/// line_bresenham(&mut c, &ARGBColour::new(255, 255, 0, 0), 10, 20, 110, 120);
+/// ```
+pub fn line_bresenham(c: &mut Canvas, col: &ARGBColour, mut x1: usize, mut y1: usize, mut x2: usize, mut y2: usize) {
+    if x2 > x1 && x1 > c.width() { return; }
+    if y2 > y1 && y1 > c.height() { return; }
+    if x1 > x2 && x2 > c.width() { return; }
+    if y1 > y2 && y2 > c.height() { return; }
+    if x1 > x2 && x1 >= c.width() { x1 = c.width() - 1 }
+    if y1 > y2 && y1 >= c.height() { y1 = c.height() - 1 }
+    if x2 > x1 && x2 >= c.width() { x2 = c.width() - 1 }
+    if y2 > y1 && y2 >= c.height() { y2 = c.height() - 1 }
+
+    let col: u32 = col.into();
+
+    if ((y2 as isize) - (y1 as isize)).abs() < ((x2 as isize) - (x1 as isize)).abs() {
+        if x1 > x2 {
+            plot_line_low(c, col, x2, y2, x1, y1);
+        } else {
+            plot_line_low(c, col, x1, y1, x2, y2);
+        }
+    } else {
+        if y1 > y2 {
+            plot_line_high(c, col, x2, y2, x1, y1);
+        } else {
+            plot_line_high(c, col, x1, y1, x2, y2);
+        }
+    }
+}
+
+#[wasm_bindgen]
+/// General-purpose line drawing function.  Draws a line of a given colour between points (x1,x2)
+/// and (y1,y2) to a [`Canvas`].
+///
+/// Defers actual drawing to [`h_line`], [`v_line`] or [`line_bresenham`] as appropriate.
+///
+/// [`Canvas`]: ../canvas/struct.Canvas.html
+/// [`h_line`]: ./fn.h_line.html
+/// [`v_line`]: ./fn.v_line.html
+/// [`line_bresenham`]: ./fn.line_bresenham.html
+///
+/// # Arguments:
+///
+///   - `c`: target [`Canvas`]
+///   - `col`: colour to use for line
+///   - `x1`: x co-ordinate of line start
+///   - `y1`: y co-ordinate of line start
+///   - `x2`: x co-ordinate of line end
+///   - `y2`: y co-ordinate of line end
+///
+/// # Example:
+///
+/// ```
+/// use rust_wasm_graphics_lib::canvas::Canvas;
+/// use rust_wasm_graphics_lib::drawing::line;
+/// use rust_wasm_graphics_lib::types::ARGBColour;
+///
+/// let mut c = Canvas::new(128, 128);
+/// line(&mut c, &ARGBColour::new(255, 255, 0, 0), 10, 20, 110, 120);
+/// ```
+pub fn line(c: &mut Canvas, col: &ARGBColour, x1: usize, y1: usize, x2: usize, y2: usize) {
+    if x1 == x2 {
+        v_line(c, col, x1, y1, y2);
+    } else if y1 == y2 {
+        h_line(c, col, x1, y1, x2);
+    } else {
+        line_bresenham(c, col, x1, y1, x2, y2);
     }
 }

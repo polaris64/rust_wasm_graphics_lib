@@ -2,17 +2,18 @@ import {
   ARGBColour,
   Canvas,
   fill_rect,
-  h_line,
-  v_line,
+  line,
 } from 'rust-wasm-graphics-lib';
 
 import { memory } from 'rust-wasm-graphics-lib/rust_wasm_graphics_lib_bg';
 
-const SIZE_MULT = 4;
+const SIZE_MULT = 2;
+const WIDTH = 256;
+const HEIGHT = 256;
 const clear_colour = ARGBColour.new(255, 0, 128, 0);
 const draw_colour = ARGBColour.new(255, 0, 0, 0);
 
-const rust_canvas = Canvas.new(128, 128);
+const rust_canvas = Canvas.new(WIDTH, HEIGHT);
 const height      = rust_canvas.height();
 const width       = rust_canvas.width();
 
@@ -68,7 +69,7 @@ const demo_hlines = () => {
   let x2 = Math.floor(((Math.sin(counter * 1.1) + 1) / 2) * width) + 16;
   let y = Math.floor(((Math.cos(counter * 0.5) + 1) / 2) * height);
 
-  h_line(rust_canvas, draw_colour, x1, y, x2);
+  line(rust_canvas, draw_colour, x1, y, x2, y);
 };
 
 const demo_vlines = () => {
@@ -83,7 +84,39 @@ const demo_vlines = () => {
   let y2 = Math.floor(((Math.sin(counter * 1.2) + 1) / 2) * height) + 16;
   let x = Math.floor(((Math.cos(counter * 0.3) + 1) / 2) * width);
 
-  v_line(rust_canvas, draw_colour, x, y1, y2);
+  line(rust_canvas, draw_colour, x, y1, x, y2);
+};
+
+const demo_lines = () => {
+  let nr = Math.floor(((Math.sin(counter * 1.8) + 1) / 2) * 255);
+  let ng = Math.floor(((Math.cos(counter * 0.2) + 1) / 2) * 255);
+  let nb = Math.floor(((Math.sin(counter * 0.7) + 1) / 2) * 255);
+  draw_colour.r = nr;
+  draw_colour.g = ng;
+  draw_colour.b = nb;
+
+  let x1 = Math.floor(((Math.sin(counter * 0.8) + 1) / 2) * width);
+  let x2 = Math.floor(((Math.cos(counter * 1.1) + 1) / 2) * width) + 16;
+  let y1 = Math.floor(((Math.sin(counter * 0.5) + 1) / 2) * height);
+  let y2 = Math.floor(((Math.cos(counter * 1.2) + 1) / 2) * height) + 16;
+
+  line(rust_canvas, draw_colour, x1, y1, x2, y2);
+};
+
+const demo_rotating_line = () => {
+  let nr = Math.floor(((Math.sin(counter * 1.4) + 1) / 2) * 255);
+  let ng = Math.floor(((Math.cos(counter * 0.6) + 1) / 2) * 255);
+  let nb = Math.floor(((Math.sin(counter * 0.9) + 1) / 2) * 255);
+  draw_colour.r = nr;
+  draw_colour.g = ng;
+  draw_colour.b = nb;
+
+  let x1 = WIDTH / 2;
+  let y1 = HEIGHT / 2;
+  let x2 = (WIDTH / 2) + (100 * Math.cos(counter));
+  let y2 = (HEIGHT / 2) + (100 * Math.sin(counter));
+
+  line(rust_canvas, draw_colour, x1, y1, x2, y2);
 };
 
 const renderLoop = () => {
@@ -104,9 +137,11 @@ const renderLoop = () => {
   demo_colourful_rect();
   demo_hlines();
   demo_vlines();
+  demo_rotating_line();
+  demo_lines();
 
   drawBuffer();
-  counter += 0.025;
+  counter += 0.01;
 
   requestAnimationFrame(renderLoop);
 };
