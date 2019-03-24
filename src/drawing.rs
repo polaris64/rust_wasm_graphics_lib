@@ -1,14 +1,20 @@
+//! Drawing functions used to draw primites to a [`Canvas`]
+//!
+//! [`Canvas`]: ../canvas/struct.Canvas.html
+
 use wasm_bindgen::prelude::*;
 
 use crate::canvas::Canvas;
 use crate::types::ARGBColour;
 
 #[wasm_bindgen]
-/// Draws a filled rectangle of a given colour to a Canvas
+/// Draws a filled rectangle of a given colour to a [`Canvas`]
+///
+/// [`Canvas`]: ../canvas/struct.Canvas.html
 ///
 /// # Arguments:
 ///
-///   - `c`: target Canvas
+///   - `c`: target [`Canvas`]
 ///   - `col`: colour to use for fill
 ///   - `x1`: x co-ordinate of top-left corner
 ///   - `y1`: y co-ordinate of top-left corner
@@ -36,14 +42,14 @@ pub fn fill_rect(c: &mut Canvas, col: &ARGBColour, mut x1: usize, mut y1: usize,
         y1 = y2;
         y2 = temp;
     }
-    if x1 > c.width() { x1 = c.width() }
-    if y1 > c.height() { y1 = c.height() }
-    if x2 > c.width() { x2 = c.width() }
-    if y2 > c.height() { y2 = c.height() }
+    if x1 >= c.width() { x1 = c.width() - 1 }
+    if y1 >= c.height() { y1 = c.height() - 1 }
+    if x2 >= c.width() { x2 = c.width() - 1 }
+    if y2 >= c.height() { y2 = c.height() - 1 }
 
     let col: u32 = col.into();
-    for y in y1..y2 {
-        for x in x1..x2 {
+    for y in y1..y2 + 1 {
+        for x in x1..x2 + 1 {
             let idx = c.buffer_index(x, y);
             c.buffer()[idx] = col;
         }
@@ -51,11 +57,13 @@ pub fn fill_rect(c: &mut Canvas, col: &ARGBColour, mut x1: usize, mut y1: usize,
 }
 
 #[wasm_bindgen]
-/// Draws a horizontal line of a given colour to a Canvas
+/// Draws a horizontal line of a given colour to a [`Canvas`]
+///
+/// [`Canvas`]: ../canvas/struct.Canvas.html
 ///
 /// # Arguments:
 ///
-///   - `c`: target Canvas
+///   - `c`: target [`Canvas`]
 ///   - `col`: colour to use for line
 ///   - `x1`: x co-ordinate of line start
 ///   - `y`: y co-ordinate
@@ -93,11 +101,13 @@ pub fn h_line(c: &mut Canvas, col: &ARGBColour, mut x1: usize, y: usize, mut x2:
 }
 
 #[wasm_bindgen]
-/// Draws a vertical line of a given colour to a Canvas
+/// Draws a vertical line of a given colour to a [`Canvas`]
+///
+/// [`Canvas`]: ../canvas/struct.Canvas.html
 ///
 /// # Arguments:
 ///
-///   - `c`: target Canvas
+///   - `c`: target [`Canvas`]
 ///   - `col`: colour to use for line
 ///   - `x`: x co-ordinate
 ///   - `y1`: y co-ordinate of line start

@@ -56,12 +56,7 @@ impl Canvas {
     /// ```
     pub fn clear(&mut self, colour: &ARGBColour) {
         let colour: u32 = colour.into();
-        for y in 0..self.height {
-            for x in 0..self.width {
-                let idx = self.buffer_index(x, y);
-                self.buffer[idx] = colour;
-            }
-        }
+        self.buffer.iter_mut().for_each(|x| *x = colour);
     }
 }
 
