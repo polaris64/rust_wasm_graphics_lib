@@ -44,6 +44,15 @@ fn assert_pixels_without_colour(canv: &mut Canvas, col: &ARGBColour, coords: &Ve
     );
 }
 
+
+#[wasm_bindgen_test]
+fn argbcolour_into_u32() {
+    assert_eq!(u32::from(&ARGBColour::new(0, 0, 0, 0)), 0);
+    assert_eq!(u32::from(&ARGBColour::new(255, 255, 255, 255)), 0xFFFFFFFF);
+    assert_eq!(u32::from(&ARGBColour::new(1, 2, 3, 4)), 0x01020304);
+}
+
+
 #[wasm_bindgen_test]
 fn canvas_create() {
     let mut canv = Canvas::new(10, 20);
@@ -76,6 +85,7 @@ fn canvas_clear() {
     // Assert that all canvas pixels now have "col" value
     assert_all_pixels_have_colour(&mut canv, &col);
 }
+
 
 #[wasm_bindgen_test]
 fn drawing_fill_rect() {
