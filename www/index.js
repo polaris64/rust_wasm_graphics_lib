@@ -3,6 +3,8 @@ import {
   Canvas,
   fill_rect,
   line,
+  polygon,
+  rect,
 } from 'rust-wasm-graphics-lib';
 
 import { memory } from 'rust-wasm-graphics-lib/rust_wasm_graphics_lib_bg';
@@ -54,7 +56,31 @@ const demo_colourful_rect = () => {
     rectx + rectw,
     recty + recth,
   );
+};
 
+const demo_rect = () => {
+  let nr, ng, nb;
+
+  nr = Math.floor(((Math.cos(counter * 1.1) + 1) / 2) * 255);
+  ng = Math.floor(((Math.sin(counter * 1.4) + 1) / 2) * 255);
+  nb = Math.floor(((Math.cos(counter * 2.3) + 1) / 2) * 255);
+  draw_colour.r = nr;
+  draw_colour.g = ng;
+  draw_colour.b = nb;
+
+  let rectx = Math.floor(((Math.cos(counter * 1.8) + 1) / 2) * width  / 2);
+  let recty = Math.floor(((Math.sin(counter * 2.2) + 1) / 2) * height / 2);
+  let rectw = Math.floor(((Math.cos(counter * 1.1) + 1) / 2) * width  / 2) + 16;
+  let recth = Math.floor(((Math.sin(counter * 1.4) + 1) / 2) * height / 2) + 16;
+
+  rect(
+    rust_canvas,
+    draw_colour,
+    rectx,
+    recty,
+    rectx + rectw,
+    recty + recth,
+  );
 };
 
 const demo_hlines = () => {
@@ -119,6 +145,39 @@ const demo_rotating_line = () => {
   line(rust_canvas, draw_colour, x1, y1, x2, y2);
 };
 
+const demo_polygon = () => {
+  let nr = Math.floor(((Math.sin(counter * 1.4) + 1) / 2) * 255);
+  let ng = Math.floor(((Math.cos(counter * 0.6) + 1) / 2) * 255);
+  let nb = Math.floor(((Math.sin(counter * 0.9) + 1) / 2) * 255);
+  draw_colour.r = nr;
+  draw_colour.g = ng;
+  draw_colour.b = nb;
+
+  const points = [
+    [-1, -2],
+    [ 1, -2],
+    [ 2, -1],
+    [ 2,  1],
+    [ 1,  2],
+    [-1,  2],
+    [-2,  1],
+    [-2, -1],
+    [-1, -2],
+  ]
+    .map((pt) => [
+      ((pt[0] * 20 * Math.cos(counter)) - (pt[1] * 20 * Math.sin(counter))) + (WIDTH / 2),
+      ((pt[0] * 20 * Math.sin(counter)) + (pt[1] * 20 * Math.cos(counter))) + (HEIGHT / 2),
+    ])
+    .reduce((a, pt) => a.concat(pt), []);
+
+  polygon(
+    rust_canvas,
+    draw_colour,
+    false,
+    points,
+  );
+};
+
 const renderLoop = () => {
   //debugger;
 
@@ -135,10 +194,12 @@ const renderLoop = () => {
   }
 
   demo_colourful_rect();
+  demo_rect();
   demo_hlines();
   demo_vlines();
   demo_rotating_line();
   demo_lines();
+  demo_polygon();
 
   drawBuffer();
   counter += 0.01;

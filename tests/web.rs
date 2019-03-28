@@ -151,6 +151,72 @@ fn drawing_fill_rect() {
 }
 
 #[wasm_bindgen_test]
+fn drawing_rect() {
+    let mut canv = Canvas::new(4, 6);
+    let col = ARGBColour::new(255, 255, 0, 0);
+
+    // Assert that no canvas pixels have "col" value
+    assert_no_pixels_with_colour(&mut canv, &col);
+
+    // Draw a rectangle (1, 2, 5, 7)
+    drawing::rect(&mut canv, &col, 1, 2, 5, 7);
+
+    // Locations which should not be filled
+    let ne_idx = vec![
+        (0, 0), (1, 0), (2, 0), (3, 0),
+        (0, 1), (1, 1), (2, 1), (3, 1),
+        (0, 2), /* +---------------- */
+        (0, 3), /* |  */(2, 3), /*   */
+        (0, 4), /* |  */(2, 4), /*   */
+        (0, 5), /* |  */(2, 5), /*   */
+    ];
+
+    // Locations which should be filled
+    let eq_idx = vec![
+        (1, 2), (2, 2), (3, 2),
+        (1, 3), /*           */
+        (1, 4), /*           */
+        (1, 5), /*           */
+    ];
+
+    // Assert all un-filled locations are not set to "col"
+    assert_pixels_without_colour(&mut canv, &col, &ne_idx);
+
+    // Assert all filled locations are set to "col"
+    assert_pixels_with_colour(&mut canv, &col, &eq_idx);
+
+    // Test bounds
+    let mut canv = canvas::Canvas::new(4, 4);
+
+    // Assert that no canvas pixels have "col" value
+    assert_no_pixels_with_colour(&mut canv, &col);
+
+    // Draw a rectangle (1, 0, 2, 2)
+    drawing::rect(&mut canv, &col, 1, 0, 2, 2);
+
+    // Locations which should not be filled
+    let ne_idx = vec![
+        (0, 0), /*+---------+*/ (3, 0),
+        (0, 1), /*|         |*/ (3, 1),
+        (0, 2), /*+---------+*/ (3, 2),
+        (0, 3), (1, 3), (2, 3), (3, 3),
+    ];
+
+    // Locations which should be filled
+    let eq_idx = vec![
+        (1, 0), (2, 0),
+        (1, 1), (2, 1),
+        (1, 2), (2, 2),
+    ];
+
+    // Assert all un-filled locations are not set to "col"
+    assert_pixels_without_colour(&mut canv, &col, &ne_idx);
+
+    // Assert all filled locations are set to "col"
+    assert_pixels_with_colour(&mut canv, &col, &eq_idx);
+}
+
+#[wasm_bindgen_test]
 fn drawing_h_line() {
     let mut canv = canvas::Canvas::new(5, 4);
     let col = types::ARGBColour::new(255, 255, 0, 0);
