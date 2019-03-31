@@ -335,8 +335,45 @@ pub fn line(c: &mut Canvas, col: &ARGBColour, x1: isize, y1: isize, x2: isize, y
 }
 
 #[wasm_bindgen]
-pub fn polygon(c: &mut Canvas, col: &ARGBColour, _close: bool, points: Vec<i32>) {
+/// Draws an un-filled polygon given a list of vertices with a given stroke colour.
+///
+/// Vertices should be listed as a flat array of x,y co-ordinates, therefore the length should
+/// always be a multiple of 2.
+///
+/// If the `close` flag is set, a line will also be drawn from the last vertex to the first to
+/// close the polygon.
+///
+/// [`Canvas`]: ../canvas/struct.Canvas.html
+///
+/// # Arguments:
+///
+///   - `c`: target [`Canvas`]
+///   - `col`: colour to use for line
+///   - `close`: if set, will close the polygon by drawing a line from the last vertex to the
+///      first.
+///   - `points`: flat list of vertices with components in x,y order
+///
+/// # Example:
+///
+/// ```
+/// use rust_wasm_graphics_lib::canvas::Canvas;
+/// use rust_wasm_graphics_lib::drawing::polygon;
+/// use rust_wasm_graphics_lib::types::ARGBColour;
+///
+/// let mut c = Canvas::new(128, 128);
+///
+/// // Draw a triangle
+/// polygon(&mut c, &ARGBColour::new(255, 255, 0, 0), true, vec![0, -10, 10, 10, -10, 10]);
+/// ```
+pub fn polygon(c: &mut Canvas, col: &ARGBColour, close: bool, points: Vec<i32>) {
     points.as_slice().chunks(2).zip(points.as_slice().chunks(2).skip(1)).for_each(|(curr, next)| {
         line(c, col, curr[0] as isize, curr[1] as isize, next[0] as isize, next[1] as isize);
     });
+    if close && points.len() >= 4 {
+        let fx = points[0];
+        let fy = points[1];
+        let lx = points[points.len() - 2];
+        let ly = points[points.len() - 1];
+        line(c, col, lx as isize, ly as isize, fx as isize, fy as isize);
+    }
 }

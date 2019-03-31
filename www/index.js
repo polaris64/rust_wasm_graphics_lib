@@ -12,6 +12,16 @@ import { memory } from 'rust-wasm-graphics-lib/rust_wasm_graphics_lib_bg';
 const SIZE_MULT = 2;
 const WIDTH = 256;
 const HEIGHT = 256;
+
+const POLY_POINTS = [
+  [1.0, 0.0],
+  [-0.8090169943749473, 0.5877852522924732],
+  [0.30901699437494723, -0.9510565162951536],
+  [0.30901699437494745, 0.9510565162951535],
+  [-0.8090169943749476, -0.587785252292473],
+];
+const POLY_SIZE = WIDTH / 3;
+
 const clear_colour = ARGBColour.new(255, 0, 128, 0);
 const draw_colour = ARGBColour.new(255, 0, 0, 0);
 
@@ -139,8 +149,8 @@ const demo_rotating_line = () => {
 
   let x1 = WIDTH / 2;
   let y1 = HEIGHT / 2;
-  let x2 = (WIDTH / 2) + (100 * Math.cos(counter));
-  let y2 = (HEIGHT / 2) + (100 * Math.sin(counter));
+  let x2 = (WIDTH / 2) + (100 * Math.cos(-counter));
+  let y2 = (HEIGHT / 2) + (100 * Math.sin(-counter));
 
   line(rust_canvas, draw_colour, x1, y1, x2, y2);
 };
@@ -153,27 +163,17 @@ const demo_polygon = () => {
   draw_colour.g = ng;
   draw_colour.b = nb;
 
-  const points = [
-    [-1, -2],
-    [ 1, -2],
-    [ 2, -1],
-    [ 2,  1],
-    [ 1,  2],
-    [-1,  2],
-    [-2,  1],
-    [-2, -1],
-    [-1, -2],
-  ]
+  const points = POLY_POINTS
     .map((pt) => [
-      ((pt[0] * 20 * Math.cos(counter)) - (pt[1] * 20 * Math.sin(counter))) + (WIDTH / 2),
-      ((pt[0] * 20 * Math.sin(counter)) + (pt[1] * 20 * Math.cos(counter))) + (HEIGHT / 2),
+      ((pt[0] * POLY_SIZE * Math.cos(counter)) - (pt[1] * POLY_SIZE * Math.sin(counter))) + (WIDTH  / 2),
+      ((pt[0] * POLY_SIZE * Math.sin(counter)) + (pt[1] * POLY_SIZE * Math.cos(counter))) + (HEIGHT / 2),
     ])
     .reduce((a, pt) => a.concat(pt), []);
 
   polygon(
     rust_canvas,
     draw_colour,
-    false,
+    true,
     points,
   );
 };

@@ -1,7 +1,7 @@
 use criterion::{Criterion, criterion_group, criterion_main};
 
 use rust_wasm_graphics_lib::canvas::Canvas;
-use rust_wasm_graphics_lib::drawing::{fill_rect, h_line, v_line};
+use rust_wasm_graphics_lib::drawing::{fill_rect, h_line, polygon, v_line};
 use rust_wasm_graphics_lib::types::ARGBColour;
 
 fn bench_canvas_clear(c: &mut Criterion) {
@@ -37,9 +37,20 @@ fn bench_drawing_v_line(c: &mut Criterion) {
     );
 }
 
+fn bench_drawing_polygon(c: &mut Criterion) {
+    let col = ARGBColour::new(255, 255, 0, 0);
+    let mut can = Canvas::new(128, 128);
+    let pts = vec![0, -10, 10, 10, -10, 10];
+    c.bench_function(
+        "drawing::polygon()",
+        move |b| b.iter(|| polygon(&mut can, &col, true, pts.clone()))
+    );
+}
+
 criterion_group!(benches,
     bench_canvas_clear,
     bench_drawing_fill_rect,
+    bench_drawing_polygon,
     bench_drawing_h_line,
     bench_drawing_v_line,
 );
