@@ -208,7 +208,6 @@ const demo_fill_polygon = () => {
   fill_polygon(
     rust_canvas,
     draw_colour,
-    true,
     points,
   );
 };

@@ -96,7 +96,7 @@ fn drawing_fill_rect() {
     assert_no_pixels_with_colour(&mut canv, &col);
 
     // Draw a rectangle (2, 4, 5, 7): should fill pixels (2,4), (3,4), (2,5), (3,5)
-    drawing::fill_rect(&mut canv, &col, 2, 4, 5, 7);
+    drawing::rect::fill_rect(&mut canv, &col, 2, 4, 5, 7);
 
     // Locations which should not be filled
     let ne_idx = vec![
@@ -127,7 +127,7 @@ fn drawing_fill_rect() {
     assert_no_pixels_with_colour(&mut canv, &col);
 
     // Draw a rectangle (1, 1, 2, 2): should fill pixels (1,1), (2,1), (1,2), (2,2)
-    drawing::fill_rect(&mut canv, &col, 1, 1, 2, 2);
+    drawing::rect::fill_rect(&mut canv, &col, 1, 1, 2, 2);
 
     // Locations which should not be filled
     let ne_idx = vec![
@@ -159,13 +159,13 @@ fn drawing_h_line() {
     assert_no_pixels_with_colour(&mut canv, &col);
 
     // Draw a horizontal line on y=1 from x=0 to x=3
-    drawing::h_line(&mut canv, &col, 0, 1, 3);
+    drawing::lines::h_line(&mut canv, &col, 0, 1, 3);
 
     // Draw a horizontal line on y=3 from x=2 to x=6
-    drawing::h_line(&mut canv, &col, 2, 3, 6);
+    drawing::lines::h_line(&mut canv, &col, 2, 3, 6);
 
     // Draw a horizontal line on y=4 from x=0 to x=4 (out of canvas bounds)
-    drawing::h_line(&mut canv, &col, 0, 4, 4);
+    drawing::lines::h_line(&mut canv, &col, 0, 4, 4);
 
     // Locations which should not be filled
     let ne_idx = vec![
@@ -197,7 +197,7 @@ fn drawing_polygon() {
     assert_no_pixels_with_colour(&mut canv, &col);
 
     // Draw a polygon (not closed)
-    drawing::polygon(
+    drawing::shape::polygon(
         &mut canv,
         &col,
         false,
@@ -245,7 +245,7 @@ fn drawing_polygon() {
     assert_no_pixels_with_colour(&mut canv, &col);
 
     // Draw a polygon (closed)
-    drawing::polygon(&mut canv, &col, true, vec![0, 0, 1, 0, 1, 2, 2, 2, 2, 5, 0, 5]);
+    drawing::shape::polygon(&mut canv, &col, true, vec![0, 0, 1, 0, 1, 2, 2, 2, 2, 5, 0, 5]);
 
     let ne_idx = vec![
         /* +-------+ */ (2, 0), (3, 0),
@@ -281,10 +281,9 @@ fn drawing_filled_polygon() {
     assert_no_pixels_with_colour(&mut canv, &col);
 
     // Draw a polygon (not closed)
-    drawing::fill_polygon(
+    drawing::shape::fill_polygon(
         &mut canv,
         &col,
-        false,
         vec![
             0, 0,
             1, 0,
@@ -332,7 +331,7 @@ fn drawing_rect() {
     assert_no_pixels_with_colour(&mut canv, &col);
 
     // Draw a rectangle (1, 2, 5, 7)
-    drawing::rect(&mut canv, &col, 1, 2, 5, 7);
+    drawing::rect::rect(&mut canv, &col, 1, 2, 5, 7);
 
     // Locations which should not be filled
     let ne_idx = vec![
@@ -365,7 +364,7 @@ fn drawing_rect() {
     assert_no_pixels_with_colour(&mut canv, &col);
 
     // Draw a rectangle (1, 0, 2, 2)
-    drawing::rect(&mut canv, &col, 1, 0, 2, 2);
+    drawing::rect::rect(&mut canv, &col, 1, 0, 2, 2);
 
     // Locations which should not be filled
     let ne_idx = vec![
@@ -398,13 +397,13 @@ fn drawing_v_line() {
     assert_no_pixels_with_colour(&mut canv, &col);
 
     // Draw a vertical line on x=1 from y=0 to y=3
-    drawing::v_line(&mut canv, &col, 1, 0, 3);
+    drawing::lines::v_line(&mut canv, &col, 1, 0, 3);
 
     // Draw a vertical line on x=3 from y=2 to y=6
-    drawing::v_line(&mut canv, &col, 3, 2, 6);
+    drawing::lines::v_line(&mut canv, &col, 3, 2, 6);
 
     // Draw a vertical line on x=4 from y=0 to y=4 (out of canvas bounds)
-    drawing::v_line(&mut canv, &col, 4, 0, 4);
+    drawing::lines::v_line(&mut canv, &col, 4, 0, 4);
 
     // Locations which should not be filled
     let ne_idx = vec![
