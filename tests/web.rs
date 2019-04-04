@@ -273,6 +273,57 @@ fn drawing_polygon() {
 }
 
 #[wasm_bindgen_test]
+fn drawing_filled_polygon() {
+    let mut canv = Canvas::new(4, 6);
+    let col = ARGBColour::new(255, 255, 0, 0);
+
+    // Assert that no canvas pixels have "col" value
+    assert_no_pixels_with_colour(&mut canv, &col);
+
+    // Draw a polygon (not closed)
+    drawing::fill_polygon(
+        &mut canv,
+        &col,
+        false,
+        vec![
+            0, 0,
+            1, 0,
+            1, 2,
+            2, 2,
+            2, 5,
+            0, 5,
+            0, 0,
+        ]
+    );
+
+    // Locations which should not be filled
+    let ne_idx = vec![
+        /* +-------+ */ (2, 0), (3, 0),
+        /* |       | */ (2, 1), (3, 1),
+        /* |       +-------| */ (3, 2),
+        /* |               | */ (3, 3),
+        /* |               | */ (3, 4),
+        /* +---------------+ */ (3, 5),
+    ];
+
+    // Locations which should be filled
+    let eq_idx = vec![
+        (0, 0), (1, 0),
+        (0, 1), (1, 1),
+        (0, 2), (1, 2), (2, 2),
+        (0, 3), (1, 3), (2, 3),
+        (0, 4), (1, 4), (2, 4),
+        (0, 5), (1, 5), (2, 5),
+    ];
+
+    // Assert all un-filled locations are not set to "col"
+    assert_pixels_without_colour(&mut canv, &col, &ne_idx);
+
+    // Assert all filled locations are set to "col"
+    assert_pixels_with_colour(&mut canv, &col, &eq_idx);
+}
+
+#[wasm_bindgen_test]
 fn drawing_rect() {
     let mut canv = Canvas::new(4, 6);
     let col = ARGBColour::new(255, 255, 0, 0);
