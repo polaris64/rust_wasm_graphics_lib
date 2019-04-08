@@ -11,6 +11,20 @@ import {
 
 import { memory } from 'rust-wasm-graphics-lib/rust_wasm_graphics_lib_bg';
 
+const SETTINGS = {
+  clear_canvas:           false,
+  demo_fill_rect:         false,
+  demo_fill_polygon:      false,
+  demo_fill_triangle:     false,
+  demo_fill_triangle_rot: false,
+  demo_hlines:            false,
+  demo_lines:             false,
+  demo_polygon:           false,
+  demo_rect:              false,
+  demo_rotating_line:     false,
+  demo_vlines:            false,
+};
+
 const SIZE_MULT = 2;
 const WIDTH = 256;
 const HEIGHT = 256;
@@ -23,16 +37,14 @@ const POLY_POINTS = [
   [-0.8090169943749476, -0.587785252292473],
   [1.0, 0.0],
 ];
-/*
 const POLY_POINTS_TRI = [
   [ 0, -1],
   [ 1,  1],
   [-1,  1],
 ];
-*/
 const POLY_SIZE = WIDTH / 3;
 
-const clear_colour = ARGBColour.new(255, 0, 128, 0);
+const clear_colour = ARGBColour.new(255, 0, 0, 0);
 const draw_colour = ARGBColour.new(64, 0, 0, 0);
 
 const rust_canvas = Canvas.new(WIDTH, HEIGHT);
@@ -53,7 +65,32 @@ ctx.imageSmoothingEnabled = false;
 
 let counter = 0;
 
-const demo_colourful_rect = () => {
+
+/*
+ * Demonstration renderers
+ */
+const demo_fill_polygon = () => {
+  let nr = Math.floor(((Math.sin(counter * 0.7) + 1) / 2) * 255);
+  let ng = Math.floor(((Math.cos(counter * 0.5) + 1) / 2) * 255);
+  let nb = Math.floor(((Math.sin(counter * 0.2) + 1) / 2) * 255);
+  draw_colour.r = nr;
+  draw_colour.g = ng;
+  draw_colour.b = nb;
+
+  const points = POLY_POINTS
+    .map((pt) => [
+      ((pt[0] * POLY_SIZE * Math.cos(counter)) - (pt[1] * POLY_SIZE * Math.sin(counter))) + (WIDTH  / 2),
+      ((pt[0] * POLY_SIZE * Math.sin(counter)) + (pt[1] * POLY_SIZE * Math.cos(counter))) + (HEIGHT / 2),
+    ])
+    .reduce((a, pt) => a.concat(pt), []);
+
+  fill_polygon(
+    rust_canvas,
+    draw_colour,
+    points,
+  );
+};
+const demo_fill_rect = () => {
   let nr, ng, nb;
 
   nr = Math.floor(((Math.sin(counter * 1.5) + 1) / 2) * 255);
@@ -77,7 +114,97 @@ const demo_colourful_rect = () => {
     recty + recth,
   );
 };
+const demo_fill_triangle = () => {
+  let nr = Math.floor(((Math.sin(counter * 0.25) + 1) / 2) * 255);
+  let ng = Math.floor(((Math.cos(counter * 0.11) + 1) / 2) * 255);
+  let nb = Math.floor(((Math.sin(counter * 0.81) + 1) / 2) * 255);
+  draw_colour.r = nr;
+  draw_colour.g = ng;
+  draw_colour.b = nb;
 
+  fill_triangle(
+    rust_canvas,
+    draw_colour,
+    Math.floor(((Math.cos(counter * 1.2) + 1) / 2) * WIDTH),
+    Math.floor(((Math.sin(counter * 1.5) + 1) / 2) * HEIGHT),
+    Math.floor(((Math.cos(counter * 1.5) + 1) / 2) * WIDTH),
+    Math.floor(((Math.sin(counter * 1.2) + 1) / 2) * HEIGHT),
+    Math.floor(((Math.cos(counter * 1.9) + 1) / 2) * WIDTH),
+    Math.floor(((Math.sin(counter * 1.7) + 1) / 2) * HEIGHT),
+  );
+};
+const demo_fill_triangle_rot = () => {
+  let nr = Math.floor(((Math.sin(counter * 0.375) + 1) / 2) * 255);
+  let ng = Math.floor(((Math.cos(counter * 0.73) + 1) / 2) * 255);
+  let nb = Math.floor(((Math.sin(counter * 0.28) + 1) / 2) * 255);
+  draw_colour.r = nr;
+  draw_colour.g = ng;
+  draw_colour.b = nb;
+
+  const pts = POLY_POINTS_TRI
+    .map((pt) => [
+      ((pt[0] * POLY_SIZE / 2 * Math.cos(counter * 1.8)) - (pt[1] * POLY_SIZE / 2 * Math.sin(counter * 1.8))) + (WIDTH  / 2),
+      ((pt[0] * POLY_SIZE / 2 * Math.sin(counter * 1.8)) + (pt[1] * POLY_SIZE / 2 * Math.cos(counter * 1.8))) + (HEIGHT / 2),
+    ])
+    .reduce((a, pt) => a.concat(pt), []);
+
+  fill_triangle(
+    rust_canvas,
+    draw_colour,
+    ...pts
+  );
+};
+const demo_hlines = () => {
+  let nr = Math.floor(((Math.sin(counter * 1.1) + 1) / 2) * 255);
+  let ng = Math.floor(((Math.cos(counter * 0.8) + 1) / 2) * 255);
+  let nb = Math.floor(((Math.sin(counter * 1.4) + 1) / 2) * 255);
+  draw_colour.r = nr;
+  draw_colour.g = ng;
+  draw_colour.b = nb;
+
+  let x1 = Math.floor(((Math.sin(counter * 0.3) + 1) / 2) * width);
+  let x2 = Math.floor(((Math.sin(counter * 1.1) + 1) / 2) * width) + 16;
+  let y = Math.floor(((Math.cos(counter * 0.5) + 1) / 2) * height);
+
+  line(rust_canvas, draw_colour, x1, y, x2, y);
+};
+const demo_lines = () => {
+  let nr = Math.floor(((Math.sin(counter * 1.8) + 1) / 2) * 255);
+  let ng = Math.floor(((Math.cos(counter * 0.2) + 1) / 2) * 255);
+  let nb = Math.floor(((Math.sin(counter * 0.7) + 1) / 2) * 255);
+  draw_colour.r = nr;
+  draw_colour.g = ng;
+  draw_colour.b = nb;
+
+  let x1 = Math.floor(((Math.sin(counter * 0.8) + 1) / 2) * width);
+  let x2 = Math.floor(((Math.cos(counter * 1.1) + 1) / 2) * width) + 16;
+  let y1 = Math.floor(((Math.sin(counter * 0.5) + 1) / 2) * height);
+  let y2 = Math.floor(((Math.cos(counter * 1.2) + 1) / 2) * height) + 16;
+
+  line(rust_canvas, draw_colour, x1, y1, x2, y2);
+};
+const demo_polygon = () => {
+  let nr = Math.floor(((Math.sin(counter * 1.4) + 1) / 2) * 255);
+  let ng = Math.floor(((Math.cos(counter * 0.6) + 1) / 2) * 255);
+  let nb = Math.floor(((Math.sin(counter * 0.9) + 1) / 2) * 255);
+  draw_colour.r = nr;
+  draw_colour.g = ng;
+  draw_colour.b = nb;
+
+  const points = POLY_POINTS
+    .map((pt) => [
+      ((pt[0] * POLY_SIZE * Math.cos(counter)) - (pt[1] * POLY_SIZE * Math.sin(counter))) + (WIDTH  / 2),
+      ((pt[0] * POLY_SIZE * Math.sin(counter)) + (pt[1] * POLY_SIZE * Math.cos(counter))) + (HEIGHT / 2),
+    ])
+    .reduce((a, pt) => a.concat(pt), []);
+
+  polygon(
+    rust_canvas,
+    draw_colour,
+    false,
+    points,
+  );
+};
 const demo_rect = () => {
   let nr, ng, nb;
 
@@ -102,53 +229,6 @@ const demo_rect = () => {
     recty + recth,
   );
 };
-
-const demo_hlines = () => {
-  let nr = Math.floor(((Math.sin(counter * 1.1) + 1) / 2) * 255);
-  let ng = Math.floor(((Math.cos(counter * 0.8) + 1) / 2) * 255);
-  let nb = Math.floor(((Math.sin(counter * 1.4) + 1) / 2) * 255);
-  draw_colour.r = nr;
-  draw_colour.g = ng;
-  draw_colour.b = nb;
-
-  let x1 = Math.floor(((Math.sin(counter * 0.3) + 1) / 2) * width);
-  let x2 = Math.floor(((Math.sin(counter * 1.1) + 1) / 2) * width) + 16;
-  let y = Math.floor(((Math.cos(counter * 0.5) + 1) / 2) * height);
-
-  line(rust_canvas, draw_colour, x1, y, x2, y);
-};
-
-const demo_vlines = () => {
-  let nr = Math.floor(((Math.sin(counter * 1.2) + 1) / 2) * 255);
-  let ng = Math.floor(((Math.cos(counter * 1.3) + 1) / 2) * 255);
-  let nb = Math.floor(((Math.sin(counter * 1.8) + 1) / 2) * 255);
-  draw_colour.r = nr;
-  draw_colour.g = ng;
-  draw_colour.b = nb;
-
-  let y1 = Math.floor(((Math.sin(counter * 0.5) + 1) / 2) * height);
-  let y2 = Math.floor(((Math.sin(counter * 1.2) + 1) / 2) * height) + 16;
-  let x = Math.floor(((Math.cos(counter * 0.3) + 1) / 2) * width);
-
-  line(rust_canvas, draw_colour, x, y1, x, y2);
-};
-
-const demo_lines = () => {
-  let nr = Math.floor(((Math.sin(counter * 1.8) + 1) / 2) * 255);
-  let ng = Math.floor(((Math.cos(counter * 0.2) + 1) / 2) * 255);
-  let nb = Math.floor(((Math.sin(counter * 0.7) + 1) / 2) * 255);
-  draw_colour.r = nr;
-  draw_colour.g = ng;
-  draw_colour.b = nb;
-
-  let x1 = Math.floor(((Math.sin(counter * 0.8) + 1) / 2) * width);
-  let x2 = Math.floor(((Math.cos(counter * 1.1) + 1) / 2) * width) + 16;
-  let y1 = Math.floor(((Math.sin(counter * 0.5) + 1) / 2) * height);
-  let y2 = Math.floor(((Math.cos(counter * 1.2) + 1) / 2) * height) + 16;
-
-  line(rust_canvas, draw_colour, x1, y1, x2, y2);
-};
-
 const demo_rotating_line = () => {
   let nr = Math.floor(((Math.sin(counter * 1.4) + 1) / 2) * 255);
   let ng = Math.floor(((Math.cos(counter * 0.6) + 1) / 2) * 255);
@@ -164,113 +244,37 @@ const demo_rotating_line = () => {
 
   line(rust_canvas, draw_colour, x1, y1, x2, y2);
 };
-
-const demo_polygon = () => {
-  let nr = Math.floor(((Math.sin(counter * 1.4) + 1) / 2) * 255);
-  let ng = Math.floor(((Math.cos(counter * 0.6) + 1) / 2) * 255);
-  let nb = Math.floor(((Math.sin(counter * 0.9) + 1) / 2) * 255);
+const demo_vlines = () => {
+  let nr = Math.floor(((Math.sin(counter * 1.2) + 1) / 2) * 255);
+  let ng = Math.floor(((Math.cos(counter * 1.3) + 1) / 2) * 255);
+  let nb = Math.floor(((Math.sin(counter * 1.8) + 1) / 2) * 255);
   draw_colour.r = nr;
   draw_colour.g = ng;
   draw_colour.b = nb;
 
-  const points = POLY_POINTS
-    .map((pt) => [
-      ((pt[0] * POLY_SIZE * Math.cos(counter)) - (pt[1] * POLY_SIZE * Math.sin(counter))) + (WIDTH  / 2),
-      ((pt[0] * POLY_SIZE * Math.sin(counter)) + (pt[1] * POLY_SIZE * Math.cos(counter))) + (HEIGHT / 2),
-    ])
-    .reduce((a, pt) => a.concat(pt), []);
+  let y1 = Math.floor(((Math.sin(counter * 0.5) + 1) / 2) * height);
+  let y2 = Math.floor(((Math.sin(counter * 1.2) + 1) / 2) * height) + 16;
+  let x = Math.floor(((Math.cos(counter * 0.3) + 1) / 2) * width);
 
-  polygon(
-    rust_canvas,
-    draw_colour,
-    false,
-    points,
-  );
+  line(rust_canvas, draw_colour, x, y1, x, y2);
 };
 
-const demo_fill_polygon = () => {
-  let nr = Math.floor(((Math.sin(counter * 0.7) + 1) / 2) * 255);
-  let ng = Math.floor(((Math.cos(counter * 0.5) + 1) / 2) * 255);
-  let nb = Math.floor(((Math.sin(counter * 0.2) + 1) / 2) * 255);
-  draw_colour.r = nr;
-  draw_colour.g = ng;
-  draw_colour.b = nb;
-
-  const points = POLY_POINTS
-    .map((pt) => [
-      ((pt[0] * POLY_SIZE * Math.cos(counter)) - (pt[1] * POLY_SIZE * Math.sin(counter))) + (WIDTH  / 2),
-      ((pt[0] * POLY_SIZE * Math.sin(counter)) + (pt[1] * POLY_SIZE * Math.cos(counter))) + (HEIGHT / 2),
-    ])
-    .reduce((a, pt) => a.concat(pt), []);
-
-  fill_polygon(
-    rust_canvas,
-    draw_colour,
-    points,
-  );
-};
-
-const demo_fill_triangle = () => {
-  let nr = Math.floor(((Math.sin(counter * 0.7) + 1) / 2) * 255);
-  let ng = Math.floor(((Math.cos(counter * 0.5) + 1) / 2) * 255);
-  let nb = Math.floor(((Math.sin(counter * 0.2) + 1) / 2) * 255);
-  draw_colour.r = nr;
-  draw_colour.g = ng;
-  draw_colour.b = nb;
-
-  // Rotating
-  /*
-  const pts = POLY_POINTS_TRI
-    .map((pt) => [
-      ((pt[0] * POLY_SIZE / 2 * Math.cos(counter)) - (pt[1] * POLY_SIZE / 2 * Math.sin(counter))) + (WIDTH  / 2),
-      ((pt[0] * POLY_SIZE / 2 * Math.sin(counter)) + (pt[1] * POLY_SIZE / 2 * Math.cos(counter))) + (HEIGHT / 2),
-    ])
-    .reduce((a, pt) => a.concat(pt), []);
-
-  fill_triangle(
-    rust_canvas,
-    draw_colour,
-    ...pts
-  );
-  */
-
-  // Flying vertices
-  fill_triangle(
-    rust_canvas,
-    draw_colour,
-    Math.floor(((Math.cos(counter * 1.2) + 1) / 2) * WIDTH),
-    Math.floor(((Math.sin(counter * 1.5) + 1) / 2) * HEIGHT),
-    Math.floor(((Math.cos(counter * 1.5) + 1) / 2) * WIDTH),
-    Math.floor(((Math.sin(counter * 1.2) + 1) / 2) * HEIGHT),
-    Math.floor(((Math.cos(counter * 1.9) + 1) / 2) * WIDTH),
-    Math.floor(((Math.sin(counter * 1.7) + 1) / 2) * HEIGHT),
-  );
-};
 
 const renderLoop = () => {
   //debugger;
 
-  if (counter > Math.PI * 10) {
-    let nr = Math.floor(((Math.sin(counter * 10.2) + 1) / 2) * 255);
-    let ng = Math.floor(((Math.cos(counter * 10.3) + 1) / 2) * 255);
-    let nb = Math.floor(((Math.sin(counter * 10.1) + 1) / 2) * 255);
-    clear_colour.r = nr;
-    clear_colour.g = ng;
-    clear_colour.b = nb;
+  if (SETTINGS.clear_canvas) { rust_canvas.clear(clear_colour) };
 
-    rust_canvas.clear(clear_colour);
-    counter = 0;
-  }
-
-  demo_colourful_rect();
-  demo_rect();
-  demo_hlines();
-  demo_vlines();
-  demo_rotating_line();
-  demo_lines();
-  demo_fill_polygon();
-  demo_polygon();
-  demo_fill_triangle();
+  if (SETTINGS.demo_fill_rect)         { demo_fill_rect();         }
+  if (SETTINGS.demo_rect)              { demo_rect();              }
+  if (SETTINGS.demo_hlines)            { demo_hlines();            }
+  if (SETTINGS.demo_vlines)            { demo_vlines();            }
+  if (SETTINGS.demo_rotating_line)     { demo_rotating_line();     }
+  if (SETTINGS.demo_lines)             { demo_lines();             }
+  if (SETTINGS.demo_fill_polygon)      { demo_fill_polygon();      }
+  if (SETTINGS.demo_polygon)           { demo_polygon();           }
+  if (SETTINGS.demo_fill_triangle)     { demo_fill_triangle();     }
+  if (SETTINGS.demo_fill_triangle_rot) { demo_fill_triangle_rot(); }
 
   drawBuffer();
   counter += 0.01;
@@ -287,3 +291,41 @@ const drawBuffer = () => {
 };
 
 renderLoop();
+
+
+/*
+ * Event handlers for UI settings
+ */
+document.getElementById('cb_clear').addEventListener('change', (evt) => {
+  SETTINGS.clear_canvas = evt.target.checked;
+});
+document.getElementById('cb_demo_fill_polygon').addEventListener('change', (evt) => {
+  SETTINGS.demo_fill_polygon = evt.target.checked;
+});
+document.getElementById('cb_demo_fill_rect').addEventListener('change', (evt) => {
+  SETTINGS.demo_fill_rect = evt.target.checked;
+});
+document.getElementById('cb_demo_fill_triangle').addEventListener('change', (evt) => {
+  SETTINGS.demo_fill_triangle = evt.target.checked;
+});
+document.getElementById('cb_demo_fill_triangle_rot').addEventListener('change', (evt) => {
+  SETTINGS.demo_fill_triangle_rot = evt.target.checked;
+});
+document.getElementById('cb_demo_hlines').addEventListener('change', (evt) => {
+  SETTINGS.demo_hlines = evt.target.checked;
+});
+document.getElementById('cb_demo_lines').addEventListener('change', (evt) => {
+  SETTINGS.demo_lines = evt.target.checked;
+});
+document.getElementById('cb_demo_polygon').addEventListener('change', (evt) => {
+  SETTINGS.demo_polygon = evt.target.checked;
+});
+document.getElementById('cb_demo_rect').addEventListener('change', (evt) => {
+  SETTINGS.demo_rect = evt.target.checked;
+});
+document.getElementById('cb_demo_rotating_line').addEventListener('change', (evt) => {
+  SETTINGS.demo_rotating_line = evt.target.checked;
+});
+document.getElementById('cb_demo_vlines').addEventListener('change', (evt) => {
+  SETTINGS.demo_vlines = evt.target.checked;
+});
