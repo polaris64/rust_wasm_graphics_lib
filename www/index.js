@@ -3,6 +3,7 @@ import {
   Canvas,
   fill_polygon,
   fill_rect,
+  fill_triangle,
   line,
   polygon,
   rect,
@@ -24,18 +25,15 @@ const POLY_POINTS = [
 ];
 /*
 const POLY_POINTS_TRI = [
-  [0, -1],
-  [1, 1],
-  [1, 0],
-  [-1, 1],
-  [0, 1],
-  [0, -1],
+  [ 0, -1],
+  [ 1,  1],
+  [-1,  1],
 ];
 */
 const POLY_SIZE = WIDTH / 3;
 
 const clear_colour = ARGBColour.new(255, 0, 128, 0);
-const draw_colour = ARGBColour.new(32, 0, 0, 0);
+const draw_colour = ARGBColour.new(64, 0, 0, 0);
 
 const rust_canvas = Canvas.new(WIDTH, HEIGHT);
 const height      = rust_canvas.height();
@@ -212,6 +210,43 @@ const demo_fill_polygon = () => {
   );
 };
 
+const demo_fill_triangle = () => {
+  let nr = Math.floor(((Math.sin(counter * 0.7) + 1) / 2) * 255);
+  let ng = Math.floor(((Math.cos(counter * 0.5) + 1) / 2) * 255);
+  let nb = Math.floor(((Math.sin(counter * 0.2) + 1) / 2) * 255);
+  draw_colour.r = nr;
+  draw_colour.g = ng;
+  draw_colour.b = nb;
+
+  // Rotating
+  /*
+  const pts = POLY_POINTS_TRI
+    .map((pt) => [
+      ((pt[0] * POLY_SIZE / 2 * Math.cos(counter)) - (pt[1] * POLY_SIZE / 2 * Math.sin(counter))) + (WIDTH  / 2),
+      ((pt[0] * POLY_SIZE / 2 * Math.sin(counter)) + (pt[1] * POLY_SIZE / 2 * Math.cos(counter))) + (HEIGHT / 2),
+    ])
+    .reduce((a, pt) => a.concat(pt), []);
+
+  fill_triangle(
+    rust_canvas,
+    draw_colour,
+    ...pts
+  );
+  */
+
+  // Flying vertices
+  fill_triangle(
+    rust_canvas,
+    draw_colour,
+    Math.floor(((Math.cos(counter * 1.2) + 1) / 2) * WIDTH),
+    Math.floor(((Math.sin(counter * 1.5) + 1) / 2) * HEIGHT),
+    Math.floor(((Math.cos(counter * 1.5) + 1) / 2) * WIDTH),
+    Math.floor(((Math.sin(counter * 1.2) + 1) / 2) * HEIGHT),
+    Math.floor(((Math.cos(counter * 1.9) + 1) / 2) * WIDTH),
+    Math.floor(((Math.sin(counter * 1.7) + 1) / 2) * HEIGHT),
+  );
+};
+
 const renderLoop = () => {
   //debugger;
 
@@ -235,6 +270,7 @@ const renderLoop = () => {
   demo_lines();
   demo_fill_polygon();
   demo_polygon();
+  demo_fill_triangle();
 
   drawBuffer();
   counter += 0.01;

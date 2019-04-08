@@ -7,7 +7,7 @@ use super::lines::{h_line, v_line};
 #[wasm_bindgen]
 /// Draws a filled rectangle of a given colour to a [`Canvas`]
 ///
-/// [`Canvas`]: ../canvas/struct.Canvas.html
+/// [`Canvas`]: ../../canvas/struct.Canvas.html
 ///
 /// # Arguments:
 ///
@@ -68,7 +68,7 @@ pub fn fill_rect(c: &mut Canvas, col: &ARGBColour, mut x1: isize, mut y1: isize,
 #[wasm_bindgen]
 /// Draws an un-filled rectangle with a given stroke colour to a [`Canvas`]
 ///
-/// [`Canvas`]: ../canvas/struct.Canvas.html
+/// [`Canvas`]: ../../canvas/struct.Canvas.html
 ///
 /// # Arguments:
 ///

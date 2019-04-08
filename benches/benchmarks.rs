@@ -1,11 +1,14 @@
 use criterion::{Criterion, criterion_group, criterion_main};
 
 use rust_wasm_graphics_lib::canvas::Canvas;
-use rust_wasm_graphics_lib::drawing::{
+use rust_wasm_graphics_lib::drawing::shape::{
     fill_polygon,
-    fill_rect,
-    h_line,
+    fill_triangle,
     polygon,
+};
+use rust_wasm_graphics_lib::drawing::rect::fill_rect;
+use rust_wasm_graphics_lib::drawing::lines::{
+    h_line,
     v_line,
 };
 use rust_wasm_graphics_lib::types::ARGBColour;
@@ -22,6 +25,15 @@ fn bench_drawing_fill_rect(c: &mut Criterion) {
     c.bench_function(
         "drawing::fill_rect()",
         move |b| b.iter(|| fill_rect(&mut can, &col, 16, 16, 112, 112))
+    );
+}
+
+fn bench_drawing_fill_triangle(c: &mut Criterion) {
+    let col = ARGBColour::new(255, 255, 0, 0);
+    let mut can = Canvas::new(128, 128);
+    c.bench_function(
+        "drawing::fill_triangle()",
+        move |b| b.iter(|| fill_triangle(&mut can, &col, 10, 10, 60, 60, 20, 110))
     );
 }
 
@@ -46,10 +58,10 @@ fn bench_drawing_v_line(c: &mut Criterion) {
 fn bench_drawing_fill_polygon(c: &mut Criterion) {
     let col = ARGBColour::new(255, 255, 0, 0);
     let mut can = Canvas::new(128, 128);
-    let pts = vec![0, -10, 10, 10, -10, 10];
+    let pts = vec![10, 10, 60, 60, 20, 110, 10, 10];
     c.bench_function(
         "drawing::fill_polygon()",
-        move |b| b.iter(|| fill_polygon(&mut can, &col, true, pts.clone()))
+        move |b| b.iter(|| fill_polygon(&mut can, &col, pts.clone()))
     );
 }
 
@@ -68,6 +80,7 @@ criterion_group!(benches,
     bench_drawing_fill_rect,
     bench_drawing_polygon,
     bench_drawing_fill_polygon,
+    bench_drawing_fill_triangle,
     bench_drawing_h_line,
     bench_drawing_v_line,
 );

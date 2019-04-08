@@ -389,6 +389,47 @@ fn drawing_rect() {
 }
 
 #[wasm_bindgen_test]
+fn drawing_fill_triangle() {
+    let mut canv = Canvas::new(4, 4);
+    let col = ARGBColour::new(255, 255, 0, 0);
+
+    // Assert that no canvas pixels have "col" value
+    assert_no_pixels_with_colour(&mut canv, &col);
+
+    // Draw a filled triangle
+    drawing::shape::fill_triangle(&mut canv, &col, 0, 0, 3, 3, 0, 3);
+
+    // Locations which should not be filled
+    let ne_idx = vec![
+        /*+---*/(1, 0), (2, 0), (3, 0),
+        /*|#####------*/(2, 1), (3, 1),
+        /*|#############------*/(3, 2),
+        /*+-------------------------*/
+    ];
+
+    // Locations which should be filled
+    let eq_idx = vec![
+        (0, 0),
+        (0, 1), (1, 1),
+        (0, 2), (1, 2), (2, 2),
+        (0, 3), (1, 3), (2, 3), (3, 3),
+    ];
+
+    // Assert all un-filled locations are not set to "col"
+    assert_pixels_without_colour(&mut canv, &col, &ne_idx);
+
+    // Assert all filled locations are set to "col"
+    assert_pixels_with_colour(&mut canv, &col, &eq_idx);
+
+    /*
+        (0, 0), (1, 0), (2, 0), (3, 0),
+        (0, 1), (1, 1), (2, 1), (3, 1),
+        (0, 2), (1, 2), (2, 2), (3, 2),
+        (0, 3), (1, 2), (2, 2), (3, 2),
+    */
+}
+
+#[wasm_bindgen_test]
 fn drawing_v_line() {
     let mut canv = canvas::Canvas::new(4, 5);
     let col = types::ARGBColour::new(255, 255, 0, 0);

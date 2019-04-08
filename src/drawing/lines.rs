@@ -7,7 +7,7 @@ use super::line_utils::{plot_line_high, plot_line_low};
 #[wasm_bindgen]
 /// Draws a horizontal line of a given colour to a [`Canvas`]
 ///
-/// [`Canvas`]: ../canvas/struct.Canvas.html
+/// [`Canvas`]: ../../canvas/struct.Canvas.html
 ///
 /// # Arguments:
 ///
@@ -55,7 +55,7 @@ pub fn h_line(c: &mut Canvas, col: &ARGBColour, mut x1: isize, mut y: isize, mut
 #[wasm_bindgen]
 /// Draws a vertical line of a given colour to a [`Canvas`]
 ///
-/// [`Canvas`]: ../canvas/struct.Canvas.html
+/// [`Canvas`]: ../../canvas/struct.Canvas.html
 ///
 /// # Arguments:
 ///
@@ -101,7 +101,7 @@ pub fn v_line(c: &mut Canvas, col: &ARGBColour, mut x: isize, mut y1: isize, mut
 
 /// Draws a line of a given colour to a [`Canvas`] using Bresenham's line drawing algorithm.
 ///
-/// [`Canvas`]: ../canvas/struct.Canvas.html
+/// [`Canvas`]: ../../canvas/struct.Canvas.html
 ///
 /// # Arguments:
 ///
@@ -159,7 +159,7 @@ pub fn line_bresenham(c: &mut Canvas, col: &ARGBColour, mut x1: isize, mut y1: i
 ///
 /// Defers actual drawing to [`h_line`], [`v_line`] or [`line_bresenham`] as appropriate.
 ///
-/// [`Canvas`]: ../canvas/struct.Canvas.html
+/// [`Canvas`]: ../../canvas/struct.Canvas.html
 /// [`h_line`]: ./fn.h_line.html
 /// [`v_line`]: ./fn.v_line.html
 /// [`line_bresenham`]: ./fn.line_bresenham.html

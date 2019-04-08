@@ -2,7 +2,8 @@ use wasm_bindgen::prelude::*;
 
 use crate::canvas::Canvas;
 use crate::types::ARGBColour;
-use super::lines::{h_line, line};
+use super::lines::{h_line, line, v_line};
+use super::shape_utils::{downward_triangle, upward_triangle};
 
 #[wasm_bindgen]
 /// Draws an un-filled polygon given a list of vertices with a given stroke colour.
@@ -13,7 +14,7 @@ use super::lines::{h_line, line};
 /// If the `close` flag is set, a line will also be drawn from the last vertex to the first to
 /// close the polygon.
 ///
-/// [`Canvas`]: ../canvas/struct.Canvas.html
+/// [`Canvas`]: ../../canvas/struct.Canvas.html
 ///
 /// # Arguments:
 ///
@@ -56,7 +57,7 @@ pub fn polygon(c: &mut Canvas, col: &ARGBColour, close: bool, points: Vec<i32>) 
 ///
 /// See [`polygon()`] for further details.
 ///
-/// [`Canvas`]: ../canvas/struct.Canvas.html
+/// [`Canvas`]: ../../canvas/struct.Canvas.html
 /// [`polygon()`]: ./fn.polygon.html
 ///
 /// # Arguments:
@@ -135,5 +136,106 @@ pub fn fill_polygon(c: &mut Canvas, col: &ARGBColour, points: Vec<i32>) {
             .for_each(|e| {
                 h_line(c, col, (e.0).0 as isize, y as isize, (e.1).0 as isize)
             });
+    }
+}
+
+#[wasm_bindgen]
+/// Draws a filled triangle with a given fill colour given three vertices.
+///
+/// Vertices are specified as two `isize` co-ordinates in x,y order.
+///
+/// _NOTE_: this routine is much faster than [`fill_polygon()`] and should be used whenever
+/// possible.
+///
+/// [`Canvas`]: ../../canvas/struct.Canvas.html
+/// [`fill_polygon()`]: ./fn.fill_polygon.html
+///
+/// # Arguments:
+///
+///   - `c`: target [`Canvas`]
+///   - `col`: colour to use for line
+///   - `x1`: first vertex x co-ordinate
+///   - `y1`: first vertex y co-ordinate
+///   - `x2`: second vertex x co-ordinate
+///   - `y2`: second vertex y co-ordinate
+///   - `x3`: third vertex x co-ordinate
+///   - `y3`: third vertex y co-ordinate
+///
+/// # Example:
+///
+/// ```
+/// use rust_wasm_graphics_lib::canvas::Canvas;
+/// use rust_wasm_graphics_lib::drawing::shape::fill_triangle;
+/// use rust_wasm_graphics_lib::types::ARGBColour;
+///
+/// let mut c = Canvas::new(128, 128);
+/// fill_triangle(&mut c, &ARGBColour::new(255, 255, 0, 0), 0, -10, 10, 10, -10, 10);
+/// ```
+pub fn fill_triangle(
+    c: &mut Canvas,
+    col: &ARGBColour,
+    mut x1: isize,
+    mut y1: isize,
+    mut x2: isize,
+    mut y2: isize,
+    mut x3: isize,
+    mut y3: isize,
+) {
+    // Sort vertices in y order
+    if y1 > y2 {
+        std::mem::swap(&mut x1, &mut x2);
+        std::mem::swap(&mut y1, &mut y2);
+    }
+    if y1 > y3 {
+        std::mem::swap(&mut x1, &mut x3);
+        std::mem::swap(&mut y1, &mut y3);
+    }
+    if y2 > y3 {
+        std::mem::swap(&mut x2, &mut x3);
+        std::mem::swap(&mut y2, &mut y3);
+    }
+
+    // Draw a single line if the triangle vertices are aligned along an axis
+    if y1 == y2 && y2 == y3 {
+        let pts = vec![x1, x2, x3];
+        let minx = pts.iter().min().unwrap();
+        let maxx = pts.iter().max().unwrap();
+        h_line(c, col, *minx, y1, *maxx);
+    }
+    if x1 == x2 && x2 == x3 {
+        let pts = vec![y1, y2, y3];
+        let miny = pts.iter().min().unwrap();
+        let maxy = pts.iter().max().unwrap();
+        v_line(c, col, x1, *miny, *maxy);
+    }
+
+    if y1 == y2 {
+        if x1 > x2 {
+            std::mem::swap(&mut x1, &mut x2);
+            std::mem::swap(&mut y1, &mut y2);
+        }
+        downward_triangle(c, col, x1, y1, x2, y2, x3, y3);
+    } else if y2 == y3 {
+        if x2 > x3 {
+            std::mem::swap(&mut x2, &mut x3);
+            std::mem::swap(&mut y2, &mut y3);
+        }
+        upward_triangle(c, col, x1, y1, x2, y2, x3, y3);
+    } else {
+
+        // Split triangle in two
+        let mut new_pt_y = y2;
+        let dy = (y2 - y1) as f64 / (y3 - y1) as f64;
+        let mut new_pt_x = x1 + ((x3 - x1) as f64 * dy) as isize;
+
+        // Make sure new point is to the right
+        if x2 > new_pt_x {
+            std::mem::swap(&mut x2, &mut new_pt_x);
+            std::mem::swap(&mut y2, &mut new_pt_y);
+        }
+
+        // Call downward_triangle() and upward_triangle() for new split triangles
+        upward_triangle(c, col, x1, y1, x2, y2, new_pt_x, new_pt_y);
+        downward_triangle(c, col, x2, y2, new_pt_x, new_pt_y, x3, y3);
     }
 }
