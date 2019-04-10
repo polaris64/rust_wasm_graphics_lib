@@ -22,6 +22,7 @@ const SETTINGS = {
   demo_polygon:           false,
   demo_rect:              false,
   demo_rotating_line:     false,
+  demo_sprite:            false,
   demo_vlines:            false,
 };
 
@@ -45,7 +46,7 @@ const POLY_POINTS_TRI = [
 const POLY_SIZE = WIDTH / 3;
 
 const clear_colour = ARGBColour.new(255, 0, 0, 0);
-const draw_colour = ARGBColour.new(64, 0, 0, 0);
+const draw_colour = ARGBColour.new(255, 0, 0, 0);
 
 const rust_canvas = Canvas.new(WIDTH, HEIGHT);
 const height      = rust_canvas.height();
@@ -64,6 +65,34 @@ const ctx_back = canvas_back.getContext('2d');
 ctx.imageSmoothingEnabled = false;
 
 let counter = 0;
+
+let sprite_canv = null;
+
+function getImageData(url, cb) {
+  const img = new Image();
+  img.onload = () => {
+    const canv = document.createElement('canvas');
+    const ctx = canv.getContext('2d');
+    canv.width = img.width;
+    canv.height = img.height;
+    ctx.drawImage(img, 0, 0);
+    const id = ctx.getImageData(0, 0, img.width, img.height);
+    const buf32 = new Uint32Array(id.data.buffer);
+    cb(buf32, img.width, img.height);
+  };
+  img.src = url;
+}
+
+getImageData(
+  '/i/ferris.png',
+  (buf, w, h) => {
+    console.log('Loaded image:', w, h);
+    sprite_canv = Canvas.new(w, h);
+    if (sprite_canv.load_pixels(buf)) {
+      console.log('Image loaded into Canvas');
+    }
+  },
+);
 
 
 /*
@@ -259,6 +288,15 @@ const demo_vlines = () => {
   line(rust_canvas, draw_colour, x, y1, x, y2);
 };
 
+const demo_draw_sprite = () => {
+  if (!sprite_canv) {
+    return;
+  }
+  const x = Math.floor(((Math.sin(counter * 1.57) + 1) / 2) * (width  - sprite_canv.width()));
+  const y = Math.floor(((Math.cos(counter * 1.32) + 1) / 2) * (height - sprite_canv.height()));
+  rust_canvas.draw_canvas(sprite_canv, x, y);
+};
+
 
 const renderLoop = () => {
   //debugger;
@@ -275,6 +313,7 @@ const renderLoop = () => {
   if (SETTINGS.demo_polygon)           { demo_polygon();           }
   if (SETTINGS.demo_fill_triangle)     { demo_fill_triangle();     }
   if (SETTINGS.demo_fill_triangle_rot) { demo_fill_triangle_rot(); }
+  if (SETTINGS.demo_sprite)            { demo_draw_sprite();       }
 
   drawBuffer();
   counter += 0.01;
@@ -325,6 +364,9 @@ document.getElementById('cb_demo_rect').addEventListener('change', (evt) => {
 });
 document.getElementById('cb_demo_rotating_line').addEventListener('change', (evt) => {
   SETTINGS.demo_rotating_line = evt.target.checked;
+});
+document.getElementById('cb_demo_sprite').addEventListener('change', (evt) => {
+  SETTINGS.demo_sprite = evt.target.checked;
 });
 document.getElementById('cb_demo_vlines').addEventListener('change', (evt) => {
   SETTINGS.demo_vlines = evt.target.checked;

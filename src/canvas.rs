@@ -84,7 +84,7 @@ impl Canvas {
         }
 
         let max_x = if x + src_canv.width()  - 1 >= self.width  { self.width  - 1 } else { x + src_canv.width()  - 1 };
-        let max_y = if y + src_canv.height() - 1 >= self.height { self.height - 1 } else { x + src_canv.height() - 1 };
+        let max_y = if y + src_canv.height() - 1 >= self.height { self.height - 1 } else { y + src_canv.height() - 1 };
 
         self.buffer
             .as_mut_slice()
@@ -99,8 +99,37 @@ impl Canvas {
                     .skip(x)
                     .take(max_x - x + 1)
                     .enumerate()
-                    .for_each(|(dx, px)| *px = src_canv.buffer()[src_idx + dx]);
+                    .for_each(|(dx, px)| {
+                        let src_px = src_canv.buffer()[src_idx + dx];
+                        if src_px >> 24 > 0 {
+                            *px = src_px;
+                        }
+                    });
             });
+    }
+
+    /// Copies a source Vec<u32> into the Canvas `buffer`
+    ///
+    /// The `src` vector must be the same length as the current Canvas' `width * height`.
+    ///
+    /// # Arguments:
+    ///
+    ///   - `src`: vector containing source pixel data
+    ///
+    /// # Example:
+    ///
+    /// ```
+    /// use rust_wasm_graphics_lib::canvas::Canvas;
+    ///
+    /// let mut canv = Canvas::new(2, 2);
+    /// canv.load_pixels(vec![1, 2, 3, 4]);
+    /// ```
+    pub fn load_pixels(&mut self, src: Vec<u32>) -> bool {
+        if src.len() != self.width * self.height {
+            return false;
+        };
+        self.buffer.as_mut_slice().copy_from_slice(src.as_slice());
+        true
     }
 }
 

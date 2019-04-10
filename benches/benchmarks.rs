@@ -25,6 +25,12 @@ fn bench_canvas_draw_canvas(c: &mut Criterion) {
     c.bench_function("Canvas::draw_canvas()", move |b| b.iter(|| dst.draw_canvas(&src, 0, 0)));
 }
 
+fn bench_canvas_load_pixels(c: &mut Criterion) {
+    let mut dst = Canvas::new(128, 128);
+    let pixels = vec![0; 128 * 128];
+    c.bench_function("Canvas::load_pixels()", move |b| b.iter(|| dst.load_pixels(pixels.clone())));
+}
+
 fn bench_drawing_fill_rect(c: &mut Criterion) {
     let col = ARGBColour::new(255, 255, 0, 0);
     let mut can = Canvas::new(128, 128);
@@ -84,6 +90,7 @@ fn bench_drawing_polygon(c: &mut Criterion) {
 criterion_group!(benches,
     bench_canvas_clear,
     bench_canvas_draw_canvas,
+    bench_canvas_load_pixels,
     bench_drawing_fill_rect,
     bench_drawing_polygon,
     bench_drawing_fill_polygon,
