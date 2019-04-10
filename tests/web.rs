@@ -12,17 +12,17 @@ use crate::rust_wasm_graphics_lib::canvas::{self, Canvas};
 use crate::rust_wasm_graphics_lib::drawing;
 use crate::rust_wasm_graphics_lib::types::{self, ARGBColour};
 
-fn assert_no_pixels_with_colour(canv: &mut Canvas, col: &ARGBColour) {
+fn assert_no_pixels_with_colour(canv: &Canvas, col: &ARGBColour) {
     let col_u32: u32 = col.into();
     assert_eq!(canv.buffer().iter().any(|x| *x == col_u32), false);
 }
 
-fn assert_all_pixels_have_colour(canv: &mut Canvas, col: &ARGBColour) {
+fn assert_all_pixels_have_colour(canv: &Canvas, col: &ARGBColour) {
     let col_u32: u32 = col.into();
     assert_eq!(canv.buffer().iter().all(|x| *x == col_u32), true);
 }
 
-fn assert_pixels_with_colour(canv: &mut Canvas, col: &ARGBColour, coords: &Vec<(usize, usize)>) {
+fn assert_pixels_with_colour(canv: &Canvas, col: &ARGBColour, coords: &Vec<(usize, usize)>) {
     let col_u32: u32 = col.into();
     assert_eq!(
         coords.iter().all(|x| {
@@ -33,7 +33,7 @@ fn assert_pixels_with_colour(canv: &mut Canvas, col: &ARGBColour, coords: &Vec<(
     );
 }
 
-fn assert_pixels_without_colour(canv: &mut Canvas, col: &ARGBColour, coords: &Vec<(usize, usize)>) {
+fn assert_pixels_without_colour(canv: &Canvas, col: &ARGBColour, coords: &Vec<(usize, usize)>) {
     let col_u32: u32 = col.into();
     assert_eq!(
         coords.iter().all(|x| {
@@ -55,7 +55,7 @@ fn argbcolour_into_u32() {
 
 #[wasm_bindgen_test]
 fn canvas_create() {
-    let mut canv = Canvas::new(10, 20);
+    let canv = Canvas::new(10, 20);
     assert_eq!(canv.width(),  10);
     assert_eq!(canv.height(), 20);
     assert_eq!(canv.buffer().len(), 10 * 20);
@@ -77,13 +77,53 @@ fn canvas_clear() {
     let col = ARGBColour::new(255, 255, 0, 0);
 
     // Assert that no canvas pixels have "col" value
-    assert_no_pixels_with_colour(&mut canv, &col);
+    assert_no_pixels_with_colour(&canv, &col);
 
     // Clear the canvas to "col"
     canv.clear(&col);
 
     // Assert that all canvas pixels now have "col" value
-    assert_all_pixels_have_colour(&mut canv, &col);
+    assert_all_pixels_have_colour(&canv, &col);
+}
+
+#[wasm_bindgen_test]
+fn canvas_draw_canvas() {
+    let mut dst = Canvas::new(3, 3);
+    let mut src = Canvas::new(3, 3);
+    let col = ARGBColour::new(255, 255, 0, 0);
+    let col_u32 = u32::from(&col);
+
+    // Draw: -
+    //  +---+
+    //  |#  |
+    //  | # |
+    //  |# #|
+    //  +---+
+    src.buffer_mut()[0] = col_u32;
+    src.buffer_mut()[4] = col_u32;
+    src.buffer_mut()[6] = col_u32;
+    src.buffer_mut()[8] = col_u32;
+
+    assert_no_pixels_with_colour(&dst, &col);
+
+    // Should produce: -
+    //  +---+
+    //  |   |
+    //  | # |
+    //  |  #|
+    //  +---+
+    dst.draw_canvas(&mut src, 1, 1);
+
+    assert_pixels_without_colour(
+        &dst,
+        &col,
+        &vec![
+            (0, 0), (1, 0), (2, 0),
+            (0, 1), /*   */ (2, 1),
+            (0, 2), (1, 2), /*   */
+        ],
+    );
+    assert_pixels_with_colour(&dst, &col, &vec![(1, 1), (2, 2)]);
 }
 
 
@@ -93,7 +133,7 @@ fn drawing_fill_rect() {
     let col = ARGBColour::new(255, 255, 0, 0);
 
     // Assert that no canvas pixels have "col" value
-    assert_no_pixels_with_colour(&mut canv, &col);
+    assert_no_pixels_with_colour(&canv, &col);
 
     // Draw a rectangle (2, 4, 5, 7): should fill pixels (2,4), (3,4), (2,5), (3,5)
     drawing::rect::fill_rect(&mut canv, &col, 2, 4, 5, 7);
@@ -115,16 +155,16 @@ fn drawing_fill_rect() {
     ];
 
     // Assert all un-filled locations are not set to "col"
-    assert_pixels_without_colour(&mut canv, &col, &ne_idx);
+    assert_pixels_without_colour(&canv, &col, &ne_idx);
 
     // Assert all filled locations are set to "col"
-    assert_pixels_with_colour(&mut canv, &col, &eq_idx);
+    assert_pixels_with_colour(&canv, &col, &eq_idx);
 
     // Test bounds
     let mut canv = canvas::Canvas::new(4, 4);
 
     // Assert that no canvas pixels have "col" value
-    assert_no_pixels_with_colour(&mut canv, &col);
+    assert_no_pixels_with_colour(&canv, &col);
 
     // Draw a rectangle (1, 1, 2, 2): should fill pixels (1,1), (2,1), (1,2), (2,2)
     drawing::rect::fill_rect(&mut canv, &col, 1, 1, 2, 2);
@@ -144,10 +184,10 @@ fn drawing_fill_rect() {
     ];
 
     // Assert all un-filled locations are not set to "col"
-    assert_pixels_without_colour(&mut canv, &col, &ne_idx);
+    assert_pixels_without_colour(&canv, &col, &ne_idx);
 
     // Assert all filled locations are set to "col"
-    assert_pixels_with_colour(&mut canv, &col, &eq_idx);
+    assert_pixels_with_colour(&canv, &col, &eq_idx);
 }
 
 #[wasm_bindgen_test]
@@ -156,7 +196,7 @@ fn drawing_h_line() {
     let col = types::ARGBColour::new(255, 255, 0, 0);
 
     // Assert that no canvas pixels have "col" value
-    assert_no_pixels_with_colour(&mut canv, &col);
+    assert_no_pixels_with_colour(&canv, &col);
 
     // Draw a horizontal line on y=1 from x=0 to x=3
     drawing::lines::h_line(&mut canv, &col, 0, 1, 3);
@@ -182,10 +222,10 @@ fn drawing_h_line() {
     ];
 
     // Assert all un-filled locations are not set to "col"
-    assert_pixels_without_colour(&mut canv, &col, &ne_idx);
+    assert_pixels_without_colour(&canv, &col, &ne_idx);
 
     // Assert all filled locations are set to "col"
-    assert_pixels_with_colour(&mut canv, &col, &eq_idx);
+    assert_pixels_with_colour(&canv, &col, &eq_idx);
 }
 
 #[wasm_bindgen_test]
@@ -194,7 +234,7 @@ fn drawing_polygon() {
     let col = ARGBColour::new(255, 255, 0, 0);
 
     // Assert that no canvas pixels have "col" value
-    assert_no_pixels_with_colour(&mut canv, &col);
+    assert_no_pixels_with_colour(&canv, &col);
 
     // Draw a polygon (not closed)
     drawing::shape::polygon(
@@ -232,17 +272,17 @@ fn drawing_polygon() {
     ];
 
     // Assert all un-filled locations are not set to "col"
-    assert_pixels_without_colour(&mut canv, &col, &ne_idx);
+    assert_pixels_without_colour(&canv, &col, &ne_idx);
 
     // Assert all filled locations are set to "col"
-    assert_pixels_with_colour(&mut canv, &col, &eq_idx);
+    assert_pixels_with_colour(&canv, &col, &eq_idx);
 
 
     let mut canv = Canvas::new(4, 6);
     let col = ARGBColour::new(255, 255, 0, 0);
 
     // Assert that no canvas pixels have "col" value
-    assert_no_pixels_with_colour(&mut canv, &col);
+    assert_no_pixels_with_colour(&canv, &col);
 
     // Draw a polygon (closed)
     drawing::shape::polygon(&mut canv, &col, true, vec![0, 0, 1, 0, 1, 2, 2, 2, 2, 5, 0, 5]);
@@ -266,10 +306,10 @@ fn drawing_polygon() {
     ];
 
     // Assert all un-filled locations are not set to "col"
-    assert_pixels_without_colour(&mut canv, &col, &ne_idx);
+    assert_pixels_without_colour(&canv, &col, &ne_idx);
 
     // Assert all filled locations are set to "col"
-    assert_pixels_with_colour(&mut canv, &col, &eq_idx);
+    assert_pixels_with_colour(&canv, &col, &eq_idx);
 }
 
 #[wasm_bindgen_test]
@@ -278,7 +318,7 @@ fn drawing_filled_polygon() {
     let col = ARGBColour::new(255, 255, 0, 0);
 
     // Assert that no canvas pixels have "col" value
-    assert_no_pixels_with_colour(&mut canv, &col);
+    assert_no_pixels_with_colour(&canv, &col);
 
     // Draw a polygon (not closed)
     drawing::shape::fill_polygon(
@@ -316,10 +356,10 @@ fn drawing_filled_polygon() {
     ];
 
     // Assert all un-filled locations are not set to "col"
-    assert_pixels_without_colour(&mut canv, &col, &ne_idx);
+    assert_pixels_without_colour(&canv, &col, &ne_idx);
 
     // Assert all filled locations are set to "col"
-    assert_pixels_with_colour(&mut canv, &col, &eq_idx);
+    assert_pixels_with_colour(&canv, &col, &eq_idx);
 }
 
 #[wasm_bindgen_test]
@@ -328,7 +368,7 @@ fn drawing_rect() {
     let col = ARGBColour::new(255, 255, 0, 0);
 
     // Assert that no canvas pixels have "col" value
-    assert_no_pixels_with_colour(&mut canv, &col);
+    assert_no_pixels_with_colour(&canv, &col);
 
     // Draw a rectangle (1, 2, 5, 7)
     drawing::rect::rect(&mut canv, &col, 1, 2, 5, 7);
@@ -352,16 +392,16 @@ fn drawing_rect() {
     ];
 
     // Assert all un-filled locations are not set to "col"
-    assert_pixels_without_colour(&mut canv, &col, &ne_idx);
+    assert_pixels_without_colour(&canv, &col, &ne_idx);
 
     // Assert all filled locations are set to "col"
-    assert_pixels_with_colour(&mut canv, &col, &eq_idx);
+    assert_pixels_with_colour(&canv, &col, &eq_idx);
 
     // Test bounds
     let mut canv = canvas::Canvas::new(4, 4);
 
     // Assert that no canvas pixels have "col" value
-    assert_no_pixels_with_colour(&mut canv, &col);
+    assert_no_pixels_with_colour(&canv, &col);
 
     // Draw a rectangle (1, 0, 2, 2)
     drawing::rect::rect(&mut canv, &col, 1, 0, 2, 2);
@@ -382,10 +422,10 @@ fn drawing_rect() {
     ];
 
     // Assert all un-filled locations are not set to "col"
-    assert_pixels_without_colour(&mut canv, &col, &ne_idx);
+    assert_pixels_without_colour(&canv, &col, &ne_idx);
 
     // Assert all filled locations are set to "col"
-    assert_pixels_with_colour(&mut canv, &col, &eq_idx);
+    assert_pixels_with_colour(&canv, &col, &eq_idx);
 }
 
 #[wasm_bindgen_test]
@@ -394,7 +434,7 @@ fn drawing_fill_triangle() {
     let col = ARGBColour::new(255, 255, 0, 0);
 
     // Assert that no canvas pixels have "col" value
-    assert_no_pixels_with_colour(&mut canv, &col);
+    assert_no_pixels_with_colour(&canv, &col);
 
     // Draw a filled triangle
     drawing::shape::fill_triangle(&mut canv, &col, 0, 0, 3, 3, 0, 3);
@@ -416,10 +456,10 @@ fn drawing_fill_triangle() {
     ];
 
     // Assert all un-filled locations are not set to "col"
-    assert_pixels_without_colour(&mut canv, &col, &ne_idx);
+    assert_pixels_without_colour(&canv, &col, &ne_idx);
 
     // Assert all filled locations are set to "col"
-    assert_pixels_with_colour(&mut canv, &col, &eq_idx);
+    assert_pixels_with_colour(&canv, &col, &eq_idx);
 
     /*
         (0, 0), (1, 0), (2, 0), (3, 0),
@@ -435,7 +475,7 @@ fn drawing_v_line() {
     let col = types::ARGBColour::new(255, 255, 0, 0);
 
     // Assert that no canvas pixels have "col" value
-    assert_no_pixels_with_colour(&mut canv, &col);
+    assert_no_pixels_with_colour(&canv, &col);
 
     // Draw a vertical line on x=1 from y=0 to y=3
     drawing::lines::v_line(&mut canv, &col, 1, 0, 3);
@@ -465,8 +505,8 @@ fn drawing_v_line() {
     ];
 
     // Assert all un-filled locations are not set to "col"
-    assert_pixels_without_colour(&mut canv, &col, &ne_idx);
+    assert_pixels_without_colour(&canv, &col, &ne_idx);
 
     // Assert all filled locations are set to "col"
-    assert_pixels_with_colour(&mut canv, &col, &eq_idx);
+    assert_pixels_with_colour(&canv, &col, &eq_idx);
 }

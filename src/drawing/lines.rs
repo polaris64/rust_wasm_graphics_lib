@@ -44,7 +44,7 @@ pub fn h_line(c: &mut Canvas, col: &ARGBColour, mut x1: isize, mut y: isize, mut
     if x2 >= c.width() { x2 = c.width() - 1 }
     let col: u32 = col.into();
     let w = c.width();
-    c.buffer()
+    c.buffer_mut()
         .as_mut_slice()
         .iter_mut()
         .skip((y * w) + x1)
@@ -94,7 +94,7 @@ pub fn v_line(c: &mut Canvas, col: &ARGBColour, mut x: isize, mut y1: isize, mut
     let w = c.width();
     let mut idx = c.buffer_index(x, y1);
     for _ in y1..=y2 {
-        c.buffer()[idx] = col;
+        c.buffer_mut()[idx] = col;
         idx += w;
     }
 }

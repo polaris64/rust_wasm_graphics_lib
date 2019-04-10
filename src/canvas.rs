@@ -58,13 +58,62 @@ impl Canvas {
         let colour: u32 = colour.into();
         self.buffer.iter_mut().for_each(|x| *x = colour);
     }
+
+    /// Copies the contents of one Canvas to another starting at a specified top-left co-ordinate
+    ///
+    /// # Arguments:
+    ///
+    ///   - `src_canv`: Canvas whose contents will be copied
+    ///   - `x`: X co-ordinate of starting top-left position in destination Canvas
+    ///   - `y`: Y co-ordinate of starting top-left position in destination Canvas
+    ///
+    /// # Example:
+    ///
+    /// ```
+    /// use rust_wasm_graphics_lib::canvas::Canvas;
+    ///
+    /// let c_src = Canvas::new(16, 16);
+    /// let mut c_dst = Canvas::new(16, 16);
+    ///
+    /// // Draw c_dst to c_src at offset (4, 8)
+    /// c_dst.draw_canvas(&c_src, 4, 8);
+    /// ```
+    pub fn draw_canvas(&mut self, src_canv: &Canvas, x: usize, y: usize) {
+        if x >= self.width || y >= self.height {
+            return
+        }
+
+        let max_x = if x + src_canv.width()  - 1 >= self.width  { self.width  - 1 } else { x + src_canv.width()  - 1 };
+        let max_y = if y + src_canv.height() - 1 >= self.height { self.height - 1 } else { x + src_canv.height() - 1 };
+
+        self.buffer
+            .as_mut_slice()
+            .chunks_mut(self.width)
+            .skip(y)
+            .take(max_y - y + 1)
+            .enumerate()
+            .for_each(|(dy, scanline)| {
+                let src_idx = src_canv.buffer_index(0, dy);
+                scanline
+                    .iter_mut()
+                    .skip(x)
+                    .take(max_x - x + 1)
+                    .enumerate()
+                    .for_each(|(dx, px)| *px = src_canv.buffer()[src_idx + dx]);
+            });
+    }
 }
 
 
 impl Canvas {
 
-    /// Returns a mutable reference to the pixel buffer for direct pixel access
-    pub fn buffer(&mut self) -> &mut Vec<u32> {
+    /// Returns an immutable reference to the pixel buffer for direct read-only pixel access
+    pub fn buffer(&self) -> &Vec<u32> {
+        &self.buffer
+    }
+
+    /// Returns a mutable reference to the pixel buffer for direct read/write pixel access
+    pub fn buffer_mut(&mut self) -> &mut Vec<u32> {
         &mut self.buffer
     }
 }

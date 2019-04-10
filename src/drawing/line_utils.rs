@@ -14,7 +14,7 @@ pub fn plot_line_low(c: &mut Canvas, col: u32, x1: usize, y1: usize, x2: usize, 
         if y < 0 { break; }
         if y >= c.height() as isize { break; }
         let idx = c.buffer_index(x, y as usize);
-        c.buffer()[idx] = col;
+        c.buffer_mut()[idx] = col;
         if d > 0 {
             y += yi;
             d -= 2 * dx;
@@ -37,7 +37,7 @@ pub fn plot_line_high(c: &mut Canvas, col: u32, x1: usize, y1: usize, x2: usize,
         if x < 0 { break; }
         if x >= c.width() as isize { break; }
         let idx = c.buffer_index(x as usize, y);
-        c.buffer()[idx] = col;
+        c.buffer_mut()[idx] = col;
         if d > 0 {
             x += xi;
             d -= 2 * dy;

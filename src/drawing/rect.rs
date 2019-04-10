@@ -52,7 +52,7 @@ pub fn fill_rect(c: &mut Canvas, col: &ARGBColour, mut x1: isize, mut y1: isize,
     // Split buffer into chunks of "width", skip until the top of the rectangle and iterate over
     // all rows (y2 - y1) to get each scanline.  Then, set pixels in the scanline in the interval
     // [x1,x2].
-    c.buffer()
+    c.buffer_mut()
         .as_mut_slice()
         .chunks_mut(w)
         .skip(y1)
