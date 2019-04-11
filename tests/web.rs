@@ -126,6 +126,73 @@ fn canvas_draw_canvas() {
     assert_pixels_with_colour(&dst, &col, &vec![(1, 1), (2, 2)]);
 }
 
+#[wasm_bindgen_test]
+fn canvas_load_pixels() {
+    let mut dst = Canvas::new(3, 3);
+    let col = ARGBColour::new(255, 255, 0, 0);
+    let col_u32 = u32::from(&col);
+    let src = vec![
+        col_u32, 0,       col_u32,
+        0,       col_u32, col_u32,
+        0,       0,       col_u32,
+    ];
+
+    assert_no_pixels_with_colour(&dst, &col);
+    assert!(dst.load_pixels(src));
+
+    assert_pixels_without_colour(
+        &dst,
+        &col,
+        &vec![
+            /*   */ (1, 0), /*   */
+            (0, 1), /*           */
+            (0, 2), (1, 2), /*   */
+        ],
+    );
+    assert_pixels_with_colour(
+        &dst,
+        &col,
+        &vec![
+            (0, 0), /*   */ (2, 0),
+            /*   */ (1, 1), (2, 1),
+            /*           */ (2, 2),
+        ],
+    );
+}
+
+#[wasm_bindgen_test]
+fn canvas_sample() {
+    let mut dst = Canvas::new(5, 5);
+    let col = ARGBColour::new(255, 255, 0, 0);
+    let col_u32 = u32::from(&col);
+    let src = vec![
+        col_u32, 0,       col_u32, 0,       0,
+        0,       col_u32, 0,       0,       col_u32,
+        0,       0,       col_u32, 0,       0,
+        0,       col_u32, 0,       0,       0,
+        0,       0,       0,       0,       0,
+    ];
+
+    assert_no_pixels_with_colour(&dst, &col);
+    assert!(dst.load_pixels(src));
+
+    assert_eq!(col_u32, dst.sample(0f64, 0f64));
+    assert_eq!(0,       dst.sample(1f64, 1f64));
+    assert_eq!(0,       dst.sample(2f64, 2f64));
+
+    // (1, 0)
+    assert_eq!(0, dst.sample(0.25f64, 0f64));
+
+    // (1, 1)
+    assert_eq!(col_u32, dst.sample(0.25f64, 0.25f64));
+
+    // (1, 3)
+    assert_eq!(col_u32, dst.sample(0.25f64, 0.75f64));
+
+    // (1, 2)
+    assert_eq!(0, dst.sample(0.25f64, 0.5f64));
+}
+
 
 #[wasm_bindgen_test]
 fn drawing_fill_rect() {

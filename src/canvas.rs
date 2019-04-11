@@ -131,6 +131,38 @@ impl Canvas {
         self.buffer.as_mut_slice().copy_from_slice(src.as_slice());
         true
     }
+
+    /// Samples the canvas buffer at a given (u,v) co-ordinate in the range [0,1] and returns the
+    /// nearest pixel value.
+    ///
+    /// # Arguments:
+    ///
+    ///   - `u` Normalised U co-ordinate
+    ///   - `v` Normalised V co-ordinate
+    ///
+    /// # Example:
+    ///
+    /// ```
+    /// use rust_wasm_graphics_lib::canvas::Canvas;
+    ///
+    /// let mut canv = Canvas::new(8, 16);
+    ///
+    /// // Should return value of pixel near (4, 4)
+    /// canv.sample(0.5, 0.25);
+    /// ```
+    pub fn sample(&self, mut u: f64, mut v: f64) -> u32 {
+
+        // TODO: handle different wrapping modes
+        if u < 0.0 { u = 0f64; }
+        if v < 0.0 { v = 0f64; }
+        if u > 1.0 { u = 1f64; }
+        if v > 1.0 { v = 1f64; }
+
+        let x = (u * (self.width  - 1) as f64).round() as usize;
+        let y = (v * (self.height - 1) as f64).round() as usize;
+        let idx = self.buffer_index(x, y);
+        self.buffer[idx]
+    }
 }
 
 
