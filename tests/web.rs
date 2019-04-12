@@ -10,7 +10,7 @@ wasm_bindgen_test_configure!(run_in_browser);
 extern crate rust_wasm_graphics_lib;
 use crate::rust_wasm_graphics_lib::canvas::{self, Canvas};
 use crate::rust_wasm_graphics_lib::drawing;
-use crate::rust_wasm_graphics_lib::types::{self, ARGBColour};
+use crate::rust_wasm_graphics_lib::types::{self, ARGBColour, UVWrapMode};
 
 fn assert_no_pixels_with_colour(canv: &Canvas, col: &ARGBColour) {
     let col_u32: u32 = col.into();
@@ -176,21 +176,21 @@ fn canvas_sample() {
     assert_no_pixels_with_colour(&dst, &col);
     assert!(dst.load_pixels(src));
 
-    assert_eq!(col_u32, dst.sample(0f64, 0f64));
-    assert_eq!(0,       dst.sample(1f64, 1f64));
-    assert_eq!(0,       dst.sample(2f64, 2f64));
+    assert_eq!(col_u32, dst.sample(0f64, 0f64, UVWrapMode::Clamp));
+    assert_eq!(0,       dst.sample(1f64, 1f64, UVWrapMode::Clamp));
+    assert_eq!(0,       dst.sample(2f64, 2f64, UVWrapMode::Clamp));
 
     // (1, 0)
-    assert_eq!(0, dst.sample(0.25f64, 0f64));
+    assert_eq!(0, dst.sample(0.25f64, 0f64, UVWrapMode::Clamp));
 
     // (1, 1)
-    assert_eq!(col_u32, dst.sample(0.25f64, 0.25f64));
+    assert_eq!(col_u32, dst.sample(0.25f64, 0.25f64, UVWrapMode::Clamp));
 
     // (1, 3)
-    assert_eq!(col_u32, dst.sample(0.25f64, 0.75f64));
+    assert_eq!(col_u32, dst.sample(0.25f64, 0.75f64, UVWrapMode::Clamp));
 
     // (1, 2)
-    assert_eq!(0, dst.sample(0.25f64, 0.5f64));
+    assert_eq!(0, dst.sample(0.25f64, 0.5f64, UVWrapMode::Clamp));
 }
 
 

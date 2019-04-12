@@ -1,18 +1,21 @@
 import {
   ARGBColour,
   Canvas,
+  UVWrapMode,
+  UVVertex,
   fill_polygon,
   fill_rect,
   fill_triangle,
   line,
   polygon,
   rect,
+  textured_triangle,
 } from 'rust-wasm-graphics-lib';
 
 import { memory } from 'rust-wasm-graphics-lib/rust_wasm_graphics_lib_bg';
 
 const SETTINGS = {
-  clear_canvas:           false,
+  clear_canvas:           true,
   demo_fill_rect:         false,
   demo_fill_polygon:      false,
   demo_fill_triangle:     false,
@@ -23,6 +26,7 @@ const SETTINGS = {
   demo_rect:              false,
   demo_rotating_line:     false,
   demo_sprite:            false,
+  demo_textured_triangle: false,
   demo_vlines:            false,
 };
 
@@ -42,6 +46,12 @@ const POLY_POINTS_TRI = [
   [ 0, -1],
   [ 1,  1],
   [-1,  1],
+];
+const POLY_POINTS_QUAD = [
+  [-1, -1],
+  [ 1, -1],
+  [-1,  1],
+  [ 1,  1],
 ];
 const POLY_SIZE = WIDTH / 3;
 
@@ -287,7 +297,6 @@ const demo_vlines = () => {
 
   line(rust_canvas, draw_colour, x, y1, x, y2);
 };
-
 const demo_draw_sprite = () => {
   if (!sprite_canv) {
     return;
@@ -295,6 +304,24 @@ const demo_draw_sprite = () => {
   const x = Math.floor(((Math.sin(counter * 1.57) + 1) / 2) * (width  - sprite_canv.width()));
   const y = Math.floor(((Math.cos(counter * 1.32) + 1) / 2) * (height - sprite_canv.height()));
   rust_canvas.draw_canvas(sprite_canv, x, y);
+};
+const demo_textured_triangle = () => {
+  if (!sprite_canv) {
+    return;
+  }
+  const points = POLY_POINTS_QUAD
+    .map((pt) => [
+      ((pt[0] * POLY_SIZE * Math.cos(counter)) - (pt[1] * POLY_SIZE * Math.sin(counter))) + (WIDTH  / 2),
+      ((pt[0] * POLY_SIZE * Math.sin(counter)) + (pt[1] * POLY_SIZE * Math.cos(counter))) + (HEIGHT / 2),
+    ]);
+
+  const uvscale = (((Math.sin(counter) + 1) / 2) * 10) + 0.75;
+  const a = UVVertex.new(points[0][0], points[0][1], -uvscale, -uvscale);
+  const b = UVVertex.new(points[1][0], points[1][1],  uvscale, -uvscale);
+  const c = UVVertex.new(points[2][0], points[2][1], -uvscale,  uvscale);
+  const d = UVVertex.new(points[3][0], points[3][1],  uvscale,  uvscale);
+  textured_triangle(rust_canvas, sprite_canv, a, b, c, UVWrapMode.Wrap);
+  textured_triangle(rust_canvas, sprite_canv, b, c, d, UVWrapMode.Wrap);
 };
 
 
@@ -314,6 +341,7 @@ const renderLoop = () => {
   if (SETTINGS.demo_fill_triangle)     { demo_fill_triangle();     }
   if (SETTINGS.demo_fill_triangle_rot) { demo_fill_triangle_rot(); }
   if (SETTINGS.demo_sprite)            { demo_draw_sprite();       }
+  if (SETTINGS.demo_textured_triangle) { demo_textured_triangle(); }
 
   drawBuffer();
   counter += 0.01;
@@ -367,6 +395,9 @@ document.getElementById('cb_demo_rotating_line').addEventListener('change', (evt
 });
 document.getElementById('cb_demo_sprite').addEventListener('change', (evt) => {
   SETTINGS.demo_sprite = evt.target.checked;
+});
+document.getElementById('cb_demo_textured_triangle').addEventListener('change', (evt) => {
+  SETTINGS.demo_textured_triangle = evt.target.checked;
 });
 document.getElementById('cb_demo_vlines').addEventListener('change', (evt) => {
   SETTINGS.demo_vlines = evt.target.checked;

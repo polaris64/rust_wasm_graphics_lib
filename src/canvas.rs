@@ -1,6 +1,6 @@
 use wasm_bindgen::prelude::*;
 
-use crate::types::ARGBColour;
+use crate::types::{ARGBColour, UVWrapMode};
 
 #[wasm_bindgen]
 /// A single buffer of 32-bit ARGB pixels with a fixed width and height
@@ -137,29 +137,42 @@ impl Canvas {
     ///
     /// # Arguments:
     ///
-    ///   - `u` Normalised U co-ordinate
-    ///   - `v` Normalised V co-ordinate
+    ///   - `u`: normalised U co-ordinate
+    ///   - `v`: normalised V co-ordinate
+    ///   - `mode`: U,V wrapping mode to UVs out of the [1,0] range
     ///
     /// # Example:
     ///
     /// ```
     /// use rust_wasm_graphics_lib::canvas::Canvas;
+    /// use rust_wasm_graphics_lib::types::UVWrapMode;
     ///
     /// let mut canv = Canvas::new(8, 16);
     ///
     /// // Should return value of pixel near (4, 4)
-    /// canv.sample(0.5, 0.25);
+    /// canv.sample(0.5, 0.25, UVWrapMode::Clamp);
     /// ```
-    pub fn sample(&self, mut u: f64, mut v: f64) -> u32 {
+    pub fn sample(&self, mut u: f64, mut v: f64, mode: UVWrapMode) -> u32 {
+        match mode {
+            UVWrapMode::Clamp => {
+                // Clamp U,V at boundaries
+                if u < 0.0 { u = 0f64; }
+                if v < 0.0 { v = 0f64; }
+                if u > 1.0 { u = 1f64; }
+                if v > 1.0 { v = 1f64; }
+            },
+            UVWrapMode::Wrap => {
+                // Wrap U,V at boundaries
+                if u < 0.0 { u = 1.0 - ((-u) - (-u as isize) as f64); }
+                if v < 0.0 { v = 1.0 - ((-v) - (-v as isize) as f64); }
+                if u > 1.0 { u -= (u as isize) as f64; }
+                if v > 1.0 { v -= (v as isize) as f64; }
+            },
+        }
 
-        // TODO: handle different wrapping modes
-        if u < 0.0 { u = 0f64; }
-        if v < 0.0 { v = 0f64; }
-        if u > 1.0 { u = 1f64; }
-        if v > 1.0 { v = 1f64; }
-
-        let x = (u * (self.width  - 1) as f64).round() as usize;
-        let y = (v * (self.height - 1) as f64).round() as usize;
+        // floor() is faster than round() in benchmarks, so add 0.5 and floor() instead of round()
+        let x = ((u * (self.width  - 1) as f64) + 0.5).floor() as usize;
+        let y = ((v * (self.height - 1) as f64) + 0.5).floor() as usize;
         let idx = self.buffer_index(x, y);
         self.buffer[idx]
     }
