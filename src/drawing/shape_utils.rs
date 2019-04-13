@@ -83,10 +83,8 @@ pub fn downward_triangle_textured(
         for x in xl..=xr {
             let col = canv_src.sample(u, v, uv_mode);
             let idx = canv_dst.buffer_index(x as usize, y as usize);
-            if idx < canv_dst.width() * canv_dst.height() {
-                if col >> 24 > 0 {
-                    canv_dst.buffer_mut()[idx] = col;
-                }
+            if col >> 24 > 0 {
+                canv_dst.buffer_mut()[idx] = col;
             }
             u += du;
             v += dv;
@@ -137,10 +135,8 @@ pub fn upward_triangle_textured(
         for x in xl..=xr {
             let col = canv_src.sample(u, v, uv_mode);
             let idx = canv_dst.buffer_index(x as usize, y as usize);
-            if idx < canv_dst.width() * canv_dst.height() {
-                if col >> 24 > 0 {
-                    canv_dst.buffer_mut()[idx] = col;
-                }
+            if col >> 24 > 0 {
+                canv_dst.buffer_mut()[idx] = col;
             }
             u += du;
             v += dv;

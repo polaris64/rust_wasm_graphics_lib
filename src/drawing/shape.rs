@@ -292,9 +292,9 @@ pub fn textured_triangle(
     c: &UVVertex,
     uv_mode: UVWrapMode,
 ) {
-    let mut a = a.clone();
-    let mut b = b.clone();
-    let mut c = c.clone();
+    let mut a = *a;
+    let mut b = *b;
+    let mut c = *c;
 
     // Sort vertices in y order
     if a.y > b.y {
@@ -327,13 +327,15 @@ pub fn textured_triangle(
     } else {
 
         // Split triangle in two
-        let mut new_vert = UVVertex::new(0, b.y, 0f64, 0f64);
         let dy = (b.y - a.y) as f64 / (c.y - a.y) as f64;
-        new_vert.x = a.x + ((c.x - a.x) as f64 * dy) as isize;
+        let mut new_vert = UVVertex::new(
+            a.x + ((c.x - a.x) as f64 * dy) as isize,
+            b.y,
 
-        // Calculate new_vert U,V
-        new_vert.u = a.u + ((c.u - a.u) * dy);
-        new_vert.v = a.v + ((c.v - a.v) * dy);
+            // Calculate new_vert U,V
+            a.u + ((c.u - a.u) * dy),
+            a.v + ((c.v - a.v) * dy),
+        );
 
         // Make sure new point is to the right
         if b.x > new_vert.x {

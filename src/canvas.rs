@@ -83,8 +83,8 @@ impl Canvas {
             return
         }
 
-        let max_x = if x + src_canv.width()  - 1 >= self.width  { self.width  - 1 } else { x + src_canv.width()  - 1 };
-        let max_y = if y + src_canv.height() - 1 >= self.height { self.height - 1 } else { y + src_canv.height() - 1 };
+        let max_x = if x + src_canv.width()  > self.width  { self.width  - 1 } else { x + src_canv.width()  - 1 };
+        let max_y = if y + src_canv.height() > self.height { self.height - 1 } else { y + src_canv.height() - 1 };
 
         self.buffer
             .as_mut_slice()
