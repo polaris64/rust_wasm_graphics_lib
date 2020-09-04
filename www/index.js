@@ -94,7 +94,7 @@ function getImageData(url, cb) {
 }
 
 getImageData(
-  '/i/ferris.png',
+  'i/ferris.png',
   (buf, w, h) => {
     console.log('Loaded image:', w, h);
     sprite_canv = Canvas.new(w, h);
